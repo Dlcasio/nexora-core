@@ -88,7 +88,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const [compact, setCompact] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [dark, setDark] = useState(false);
-  const current = modules.find((item) => item.path === pathname) ?? modules[0];
+  const currentTitle = modules.find((item) => item.path === pathname)?.title ?? "Dashboard";
 
   useEffect(() => {
     const stored = window.localStorage.getItem("nexora-theme");
@@ -119,7 +119,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         <div className="flex min-w-0 flex-1 flex-col">
           <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-border bg-background/75 px-4 backdrop-blur-xl md:px-6">
             <Button variant="outline" size="icon" className="md:hidden" onClick={() => setMobileOpen(true)} aria-label="Open navigation"><Menu /></Button>
-            <div className="hidden items-center gap-2 font-mono text-[11px] text-muted-foreground sm:flex"><span>Workspace</span><span className="opacity-40">/</span><span className="font-medium text-foreground">{current.title}</span></div>
+            <div className="hidden items-center gap-2 font-mono text-[11px] text-muted-foreground sm:flex"><span>Workspace</span><span className="opacity-40">/</span><span className="font-medium text-foreground">{currentTitle}</span></div>
             <div className="mx-auto flex h-9 max-w-md flex-1 items-center gap-2 rounded-md border border-border bg-card/70 px-3 text-sm text-muted-foreground shadow-xs">
               <Search className="size-4 opacity-70" /><span className="min-w-0 flex-1 truncate">Search modules, records…</span><kbd className="hidden rounded border border-border bg-secondary px-1.5 py-0.5 font-mono text-[10px] sm:block">⌘K</kbd>
             </div>
