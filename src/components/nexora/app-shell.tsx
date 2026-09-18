@@ -60,13 +60,13 @@ function Sidebar({ compact, onToggle }: { compact: boolean; onToggle: () => void
       <div className={cn("flex h-16 items-center border-b border-border px-5", compact && "justify-center px-0")}><Brand compact={compact} /></div>
       {!compact && (
         <div className="px-4 pb-2 pt-4">
-          <button type="button" className="flex w-full items-center justify-between rounded-md border border-border bg-card/70 px-3 py-2 text-left transition-colors hover:bg-accent">
+          <Button variant="outline" className="h-auto w-full justify-between bg-card/70 px-3 py-2 text-left">
             <span className="flex min-w-0 items-center gap-2">
               <span className="grid size-6 shrink-0 place-items-center rounded bg-secondary font-mono text-[10px] font-bold text-muted-foreground">NX</span>
               <span className="min-w-0"><span className="block truncate text-xs font-semibold">NEXORA Workspace</span><span className="block font-mono text-[10px] text-muted-foreground">Enterprise</span></span>
             </span>
             <ChevronDown className="size-3.5 text-muted-foreground" />
-          </button>
+          </Button>
         </div>
       )}
       <Navigation compact={compact} />
@@ -109,7 +109,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       <div className="pointer-events-none fixed inset-0 bg-command-grid opacity-60" />
       <div className="relative flex min-h-screen">
         <Sidebar compact={compact} onToggle={() => setCompact((value) => !value)} />
-        {mobileOpen && <button type="button" aria-label="Close navigation" className="fixed inset-0 z-40 bg-overlay md:hidden" onClick={() => setMobileOpen(false)} />}
+        {mobileOpen && <Button variant="ghost" aria-label="Close navigation" className="fixed inset-0 z-40 h-auto rounded-none bg-overlay p-0 hover:bg-overlay md:hidden" onClick={() => setMobileOpen(false)} />}
         <aside className={cn("fixed inset-y-0 left-0 z-50 flex w-[288px] flex-col border-r border-border bg-sidebar shadow-2xl transition-transform duration-300 md:hidden", mobileOpen ? "translate-x-0" : "-translate-x-full")}>
           <div className="flex h-16 items-center justify-between border-b border-border px-5"><Brand /><Button variant="ghost" size="icon" onClick={() => setMobileOpen(false)} aria-label="Close navigation"><X /></Button></div>
           <div className="px-4 pb-2 pt-4"><div className="rounded-md border border-border bg-card/70 px-3 py-2"><p className="text-xs font-semibold">NEXORA Workspace</p><p className="font-mono text-[10px] text-muted-foreground">Enterprise</p></div></div>
@@ -126,7 +126,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             <div className="flex items-center gap-1.5">
               <Button variant="outline" size="icon" aria-label="Notifications" title="Notifications" className="relative"><Bell /><span className="absolute right-2 top-2 size-1.5 rounded-full bg-primary" /></Button>
               <Button variant="outline" size="icon" onClick={toggleTheme} aria-label={dark ? "Use light mode" : "Use dark mode"} title={dark ? "Use light mode" : "Use dark mode"}>{dark ? <Sun /> : <Moon />}</Button>
-              <button type="button" className="grid size-9 place-items-center rounded-md bg-secondary text-xs font-bold text-foreground" aria-label="Open profile">NX</button>
+              <Button variant="secondary" size="icon" className="text-xs font-bold" aria-label="Open profile">NX</Button>
             </div>
           </header>
           <main className="flex-1 p-4 md:p-6 lg:p-8">{children}</main>
