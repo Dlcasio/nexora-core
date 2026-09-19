@@ -10,112 +10,113 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as AiAssistantRouteImport } from './routes/ai-assistant'
-import { Route as AnalyticsRouteImport } from './routes/analytics'
-import { Route as AutomationRouteImport } from './routes/automation'
-import { Route as CrmRouteImport } from './routes/crm'
-import { Route as EmployeesRouteImport } from './routes/employees'
-import { Route as FinanceRouteImport } from './routes/finance'
-import { Route as InventoryRouteImport } from './routes/inventory'
-import { Route as ProjectsRouteImport } from './routes/projects'
-import { Route as SalesRouteImport } from './routes/sales'
-import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as AuthenticatedAiAssistantRouteImport } from './routes/_authenticated/ai-assistant'
+import { Route as AuthenticatedAnalyticsRouteImport } from './routes/_authenticated/analytics'
+import { Route as AuthenticatedAutomationRouteImport } from './routes/_authenticated/automation'
+import { Route as AuthenticatedCrmRouteImport } from './routes/_authenticated/crm'
+import { Route as AuthenticatedEmployeesRouteImport } from './routes/_authenticated/employees'
+import { Route as AuthenticatedFinanceRouteImport } from './routes/_authenticated/finance'
+import { Route as AuthenticatedInventoryRouteImport } from './routes/_authenticated/inventory'
+import { Route as AuthenticatedProjectsRouteImport } from './routes/_authenticated/projects'
+import { Route as AuthenticatedSalesRouteImport } from './routes/_authenticated/sales'
+import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AiAssistantRoute = AiAssistantRouteImport.update({
-  id: '/ai-assistant',
-  path: '/ai-assistant',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AnalyticsRoute = AnalyticsRouteImport.update({
-  id: '/analytics',
+const AuthenticatedAiAssistantRoute =
+  AuthenticatedAiAssistantRouteImport.update({
+    id: '/_authenticated/ai-assistant',
+    path: '/ai-assistant',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const AuthenticatedAnalyticsRoute = AuthenticatedAnalyticsRouteImport.update({
+  id: '/_authenticated/analytics',
   path: '/analytics',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AutomationRoute = AutomationRouteImport.update({
-  id: '/automation',
+const AuthenticatedAutomationRoute = AuthenticatedAutomationRouteImport.update({
+  id: '/_authenticated/automation',
   path: '/automation',
   getParentRoute: () => rootRouteImport,
 } as any)
-const CrmRoute = CrmRouteImport.update({
-  id: '/crm',
+const AuthenticatedCrmRoute = AuthenticatedCrmRouteImport.update({
+  id: '/_authenticated/crm',
   path: '/crm',
   getParentRoute: () => rootRouteImport,
 } as any)
-const EmployeesRoute = EmployeesRouteImport.update({
-  id: '/employees',
+const AuthenticatedEmployeesRoute = AuthenticatedEmployeesRouteImport.update({
+  id: '/_authenticated/employees',
   path: '/employees',
   getParentRoute: () => rootRouteImport,
 } as any)
-const FinanceRoute = FinanceRouteImport.update({
-  id: '/finance',
+const AuthenticatedFinanceRoute = AuthenticatedFinanceRouteImport.update({
+  id: '/_authenticated/finance',
   path: '/finance',
   getParentRoute: () => rootRouteImport,
 } as any)
-const InventoryRoute = InventoryRouteImport.update({
-  id: '/inventory',
+const AuthenticatedInventoryRoute = AuthenticatedInventoryRouteImport.update({
+  id: '/_authenticated/inventory',
   path: '/inventory',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ProjectsRoute = ProjectsRouteImport.update({
-  id: '/projects',
+const AuthenticatedProjectsRoute = AuthenticatedProjectsRouteImport.update({
+  id: '/_authenticated/projects',
   path: '/projects',
   getParentRoute: () => rootRouteImport,
 } as any)
-const SalesRoute = SalesRouteImport.update({
-  id: '/sales',
+const AuthenticatedSalesRoute = AuthenticatedSalesRouteImport.update({
+  id: '/_authenticated/sales',
   path: '/sales',
   getParentRoute: () => rootRouteImport,
 } as any)
-const SettingsRoute = SettingsRouteImport.update({
-  id: '/settings',
+const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
+  id: '/_authenticated/settings',
   path: '/settings',
   getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/ai-assistant': typeof AiAssistantRoute
-  '/analytics': typeof AnalyticsRoute
-  '/automation': typeof AutomationRoute
-  '/crm': typeof CrmRoute
-  '/employees': typeof EmployeesRoute
-  '/finance': typeof FinanceRoute
-  '/inventory': typeof InventoryRoute
-  '/projects': typeof ProjectsRoute
-  '/sales': typeof SalesRoute
-  '/settings': typeof SettingsRoute
+  '/ai-assistant': typeof AuthenticatedAiAssistantRoute
+  '/analytics': typeof AuthenticatedAnalyticsRoute
+  '/automation': typeof AuthenticatedAutomationRoute
+  '/crm': typeof AuthenticatedCrmRoute
+  '/employees': typeof AuthenticatedEmployeesRoute
+  '/finance': typeof AuthenticatedFinanceRoute
+  '/inventory': typeof AuthenticatedInventoryRoute
+  '/projects': typeof AuthenticatedProjectsRoute
+  '/sales': typeof AuthenticatedSalesRoute
+  '/settings': typeof AuthenticatedSettingsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/ai-assistant': typeof AiAssistantRoute
-  '/analytics': typeof AnalyticsRoute
-  '/automation': typeof AutomationRoute
-  '/crm': typeof CrmRoute
-  '/employees': typeof EmployeesRoute
-  '/finance': typeof FinanceRoute
-  '/inventory': typeof InventoryRoute
-  '/projects': typeof ProjectsRoute
-  '/sales': typeof SalesRoute
-  '/settings': typeof SettingsRoute
+  '/ai-assistant': typeof AuthenticatedAiAssistantRoute
+  '/analytics': typeof AuthenticatedAnalyticsRoute
+  '/automation': typeof AuthenticatedAutomationRoute
+  '/crm': typeof AuthenticatedCrmRoute
+  '/employees': typeof AuthenticatedEmployeesRoute
+  '/finance': typeof AuthenticatedFinanceRoute
+  '/inventory': typeof AuthenticatedInventoryRoute
+  '/projects': typeof AuthenticatedProjectsRoute
+  '/sales': typeof AuthenticatedSalesRoute
+  '/settings': typeof AuthenticatedSettingsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/ai-assistant': typeof AiAssistantRoute
-  '/analytics': typeof AnalyticsRoute
-  '/automation': typeof AutomationRoute
-  '/crm': typeof CrmRoute
-  '/employees': typeof EmployeesRoute
-  '/finance': typeof FinanceRoute
-  '/inventory': typeof InventoryRoute
-  '/projects': typeof ProjectsRoute
-  '/sales': typeof SalesRoute
-  '/settings': typeof SettingsRoute
+  '/_authenticated/ai-assistant': typeof AuthenticatedAiAssistantRoute
+  '/_authenticated/analytics': typeof AuthenticatedAnalyticsRoute
+  '/_authenticated/automation': typeof AuthenticatedAutomationRoute
+  '/_authenticated/crm': typeof AuthenticatedCrmRoute
+  '/_authenticated/employees': typeof AuthenticatedEmployeesRoute
+  '/_authenticated/finance': typeof AuthenticatedFinanceRoute
+  '/_authenticated/inventory': typeof AuthenticatedInventoryRoute
+  '/_authenticated/projects': typeof AuthenticatedProjectsRoute
+  '/_authenticated/sales': typeof AuthenticatedSalesRoute
+  '/_authenticated/settings': typeof AuthenticatedSettingsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -147,30 +148,30 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
-    | '/ai-assistant'
-    | '/analytics'
-    | '/automation'
-    | '/crm'
-    | '/employees'
-    | '/finance'
-    | '/inventory'
-    | '/projects'
-    | '/sales'
-    | '/settings'
+    | '/_authenticated/ai-assistant'
+    | '/_authenticated/analytics'
+    | '/_authenticated/automation'
+    | '/_authenticated/crm'
+    | '/_authenticated/employees'
+    | '/_authenticated/finance'
+    | '/_authenticated/inventory'
+    | '/_authenticated/projects'
+    | '/_authenticated/sales'
+    | '/_authenticated/settings'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AiAssistantRoute: typeof AiAssistantRoute
-  AnalyticsRoute: typeof AnalyticsRoute
-  AutomationRoute: typeof AutomationRoute
-  CrmRoute: typeof CrmRoute
-  EmployeesRoute: typeof EmployeesRoute
-  FinanceRoute: typeof FinanceRoute
-  InventoryRoute: typeof InventoryRoute
-  ProjectsRoute: typeof ProjectsRoute
-  SalesRoute: typeof SalesRoute
-  SettingsRoute: typeof SettingsRoute
+  AuthenticatedAiAssistantRoute: typeof AuthenticatedAiAssistantRoute
+  AuthenticatedAnalyticsRoute: typeof AuthenticatedAnalyticsRoute
+  AuthenticatedAutomationRoute: typeof AuthenticatedAutomationRoute
+  AuthenticatedCrmRoute: typeof AuthenticatedCrmRoute
+  AuthenticatedEmployeesRoute: typeof AuthenticatedEmployeesRoute
+  AuthenticatedFinanceRoute: typeof AuthenticatedFinanceRoute
+  AuthenticatedInventoryRoute: typeof AuthenticatedInventoryRoute
+  AuthenticatedProjectsRoute: typeof AuthenticatedProjectsRoute
+  AuthenticatedSalesRoute: typeof AuthenticatedSalesRoute
+  AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -182,74 +183,74 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/ai-assistant': {
-      id: '/ai-assistant'
+    '/_authenticated/ai-assistant': {
+      id: '/_authenticated/ai-assistant'
       path: '/ai-assistant'
       fullPath: '/ai-assistant'
-      preLoaderRoute: typeof AiAssistantRouteImport
+      preLoaderRoute: typeof AuthenticatedAiAssistantRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/analytics': {
-      id: '/analytics'
+    '/_authenticated/analytics': {
+      id: '/_authenticated/analytics'
       path: '/analytics'
       fullPath: '/analytics'
-      preLoaderRoute: typeof AnalyticsRouteImport
+      preLoaderRoute: typeof AuthenticatedAnalyticsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/automation': {
-      id: '/automation'
+    '/_authenticated/automation': {
+      id: '/_authenticated/automation'
       path: '/automation'
       fullPath: '/automation'
-      preLoaderRoute: typeof AutomationRouteImport
+      preLoaderRoute: typeof AuthenticatedAutomationRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/crm': {
-      id: '/crm'
+    '/_authenticated/crm': {
+      id: '/_authenticated/crm'
       path: '/crm'
       fullPath: '/crm'
-      preLoaderRoute: typeof CrmRouteImport
+      preLoaderRoute: typeof AuthenticatedCrmRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/employees': {
-      id: '/employees'
+    '/_authenticated/employees': {
+      id: '/_authenticated/employees'
       path: '/employees'
       fullPath: '/employees'
-      preLoaderRoute: typeof EmployeesRouteImport
+      preLoaderRoute: typeof AuthenticatedEmployeesRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/finance': {
-      id: '/finance'
+    '/_authenticated/finance': {
+      id: '/_authenticated/finance'
       path: '/finance'
       fullPath: '/finance'
-      preLoaderRoute: typeof FinanceRouteImport
+      preLoaderRoute: typeof AuthenticatedFinanceRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/inventory': {
-      id: '/inventory'
+    '/_authenticated/inventory': {
+      id: '/_authenticated/inventory'
       path: '/inventory'
       fullPath: '/inventory'
-      preLoaderRoute: typeof InventoryRouteImport
+      preLoaderRoute: typeof AuthenticatedInventoryRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/projects': {
-      id: '/projects'
+    '/_authenticated/projects': {
+      id: '/_authenticated/projects'
       path: '/projects'
       fullPath: '/projects'
-      preLoaderRoute: typeof ProjectsRouteImport
+      preLoaderRoute: typeof AuthenticatedProjectsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/sales': {
-      id: '/sales'
+    '/_authenticated/sales': {
+      id: '/_authenticated/sales'
       path: '/sales'
       fullPath: '/sales'
-      preLoaderRoute: typeof SalesRouteImport
+      preLoaderRoute: typeof AuthenticatedSalesRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/settings': {
-      id: '/settings'
+    '/_authenticated/settings': {
+      id: '/_authenticated/settings'
       path: '/settings'
       fullPath: '/settings'
-      preLoaderRoute: typeof SettingsRouteImport
+      preLoaderRoute: typeof AuthenticatedSettingsRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -257,16 +258,16 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AiAssistantRoute: AiAssistantRoute,
-  AnalyticsRoute: AnalyticsRoute,
-  AutomationRoute: AutomationRoute,
-  CrmRoute: CrmRoute,
-  EmployeesRoute: EmployeesRoute,
-  FinanceRoute: FinanceRoute,
-  InventoryRoute: InventoryRoute,
-  ProjectsRoute: ProjectsRoute,
-  SalesRoute: SalesRoute,
-  SettingsRoute: SettingsRoute,
+  AuthenticatedAiAssistantRoute: AuthenticatedAiAssistantRoute,
+  AuthenticatedAnalyticsRoute: AuthenticatedAnalyticsRoute,
+  AuthenticatedAutomationRoute: AuthenticatedAutomationRoute,
+  AuthenticatedCrmRoute: AuthenticatedCrmRoute,
+  AuthenticatedEmployeesRoute: AuthenticatedEmployeesRoute,
+  AuthenticatedFinanceRoute: AuthenticatedFinanceRoute,
+  AuthenticatedInventoryRoute: AuthenticatedInventoryRoute,
+  AuthenticatedProjectsRoute: AuthenticatedProjectsRoute,
+  AuthenticatedSalesRoute: AuthenticatedSalesRoute,
+  AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
