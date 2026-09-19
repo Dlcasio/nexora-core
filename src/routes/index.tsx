@@ -1,41 +1,80 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
-import { ArrowRight, CircleCheck, Sparkles } from "lucide-react";
-import { dashboardModules } from "@/components/nexora/module-catalog";
+import { ArrowRight, ShieldCheck } from "lucide-react";
+import { modules } from "@/components/nexora/module-catalog";
+import { Button } from "@/components/ui/button";
+import { useAuth } from "@/hooks/use-auth";
 
-// No head() here: the home route inherits title/description/og/twitter from
-// __root.tsx, and ships no og:image so serve-time hosting can inject the
-// project's social preview (explicit og:image or latest screenshot).
 export const Route = createFileRoute("/")({
-  head: () => ({ meta: [
-    { title: "Dashboard — NEXORA" },
-    { name: "description", content: "NEXORA business operations intelligence dashboard." },
-    { property: "og:title", content: "Dashboard — NEXORA" },
-    { property: "og:description", content: "A unified foundation for business operations intelligence." },
-    { property: "og:type", content: "website" },
-    { name: "twitter:card", content: "summary_large_image" },
-  ] }),
-  component: Index,
+  head: () => ({
+    meta: [
+      { title: "NEXORA — Business Operations Intelligence" },
+      { name: "description", content: "NEXORA unifies sales, inventory, people, finance and analytics in one operations workspace." },
+      { property: "og:title", content: "NEXORA — Business Operations Intelligence" },
+      { property: "og:description", content: "One secure workspace for your business operations intelligence." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+    ],
+  }),
+  component: Landing,
 });
 
-// IMPORTANT: Replace this placeholder. See ./README.md for routing conventions.
-function Index() {
+function Landing() {
+  const { user, loading } = useAuth();
+
   return (
-    <div className="mx-auto max-w-6xl animate-nx-rise">
-      <div className="mb-6 flex items-end justify-between gap-4">
-        <div><p className="mb-1 font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground">Operations console</p><h1 className="text-2xl font-extrabold md:text-3xl">Welcome to NEXORA</h1><p className="mt-2 max-w-xl text-sm text-muted-foreground">Your unified workspace for business operations intelligence.</p></div>
-        <span className="hidden items-center gap-2 font-mono text-[11px] text-muted-foreground sm:flex"><span className="size-1.5 rounded-full bg-status" /> All systems nominal</span>
+    <div className="relative min-h-screen bg-background font-sans text-foreground antialiased">
+      <div className="pointer-events-none fixed inset-0 bg-command-grid opacity-60" />
+      <div className="relative mx-auto flex min-h-screen max-w-5xl flex-col px-5 py-6">
+        <header className="flex items-center justify-between">
+          <span className="flex items-center gap-2.5">
+            <span className="grid size-8 place-items-center rounded-md bg-primary text-sm font-extrabold text-primary-foreground shadow-command">N</span>
+            <span className="leading-none">
+              <span className="block text-[15px] font-extrabold">NEXORA</span>
+              <span className="mt-1 block font-mono text-[10px] text-muted-foreground">OPS · FOUNDATION</span>
+            </span>
+          </span>
+          {!loading && (
+            user ? (
+              <Button asChild size="sm"><Link to="/dashboard">Open dashboard</Link></Button>
+            ) : (
+              <Button asChild size="sm"><Link to="/auth">Sign in</Link></Button>
+            )
+          )}
+        </header>
+
+        <main className="flex flex-1 flex-col justify-center py-14">
+          <p className="mb-3 font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground">Business operations intelligence</p>
+          <h1 className="max-w-2xl text-3xl font-extrabold leading-tight md:text-5xl">One secure workspace for how your business actually runs.</h1>
+          <p className="mt-4 max-w-xl text-sm leading-6 text-muted-foreground md:text-base">
+            Sales, inventory, customers, people, projects, finance and analytics — brought together in a single operations console for teams of any size.
+          </p>
+          <div className="mt-7 flex flex-wrap items-center gap-3">
+            <Button asChild size="lg">
+              <Link to={user ? "/dashboard" : "/auth"}>{user ? "Open dashboard" : "Get started"} <ArrowRight className="size-4" /></Link>
+            </Button>
+            <span className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.12em] text-muted-foreground">
+              <ShieldCheck className="size-3.5 text-status" /> Secure account access
+            </span>
+          </div>
+
+          <div className="mt-12 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+            {modules.filter((item) => item.group !== "Overview" && item.group !== "System").map((module) => {
+              const Icon = module.icon;
+              return (
+                <div key={module.path} className="rounded-lg border border-border bg-card/60 p-3 backdrop-blur-xl">
+                  <Icon className="size-4 text-primary" />
+                  <p className="mt-2 text-xs font-semibold">{module.title}</p>
+                  <p className="mt-0.5 text-[11px] text-muted-foreground">{module.description}</p>
+                </div>
+              );
+            })}
+          </div>
+        </main>
+
+        <footer className="border-t border-border pt-4 font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
+          NEXORA Operations · Foundation build
+        </footer>
       </div>
-      <div className="grid grid-cols-2 gap-3 md:gap-4 lg:grid-cols-3">
-        {dashboardModules.slice(0, 6).map((module, index) => {
-          const Icon = module.icon;
-          return <Link key={module.path} to={module.path} className="group rounded-lg border border-border bg-card/60 p-4 backdrop-blur-xl transition-colors hover:border-border-strong hover:bg-card"><div className="flex items-start justify-between"><span className={module.featured ? "grid size-9 place-items-center rounded-md bg-primary text-primary-foreground" : "grid size-9 place-items-center rounded-md bg-secondary text-foreground"}><Icon className="size-4" /></span><span className="font-mono text-[10px] text-muted-foreground group-hover:text-primary">0{index + 1}</span></div><h2 className="mt-4 text-sm font-semibold">{module.title}</h2><p className="mt-1 text-xs text-muted-foreground">{module.description}</p><span className="mt-3 flex items-center gap-1 font-mono text-[10px] uppercase text-muted-foreground group-hover:text-primary">Open <ArrowRight className="size-3" /></span></Link>;
-        })}
-      </div>
-      <section className="mt-4 flex flex-col items-start gap-4 rounded-lg border border-border bg-card/60 p-5 backdrop-blur-xl sm:flex-row sm:items-center md:p-6">
-        <span className="grid size-10 shrink-0 place-items-center rounded-md bg-secondary text-primary"><Sparkles className="size-4" /></span>
-        <div className="flex-1"><h2 className="text-sm font-semibold">Your workspace is ready</h2><p className="mt-1 text-xs text-muted-foreground">The application foundation is in place. Business modules will be added here when you need them.</p></div>
-        <span className="flex items-center gap-2 rounded-md border border-border bg-background/50 px-3 py-2 font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground"><CircleCheck className="size-3.5 text-status" /> Foundation active</span>
-      </section>
     </div>
   );
 }

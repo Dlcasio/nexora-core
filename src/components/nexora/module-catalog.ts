@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 
 export type ModulePath =
-  | "/"
+  | "/dashboard"
   | "/sales"
   | "/inventory"
   | "/crm"
@@ -38,7 +38,7 @@ export type ModuleDefinition = {
 };
 
 export const modules: ModuleDefinition[] = [
-  { title: "Dashboard", description: "Your operations overview", path: "/", icon: Gauge, group: "Overview", code: "00" },
+  { title: "Dashboard", description: "Your operations overview", path: "/dashboard", icon: Gauge, group: "Overview", code: "00" },
   { title: "Sales", description: "Pipeline and deals", path: "/sales", icon: ChartNoAxesCombined, group: "Operations", code: "01" },
   { title: "Inventory", description: "Stock and SKUs", path: "/inventory", icon: Boxes, group: "Operations", code: "02" },
   { title: "CRM", description: "Accounts and contacts", path: "/crm", icon: BriefcaseBusiness, group: "Operations", code: "03" },

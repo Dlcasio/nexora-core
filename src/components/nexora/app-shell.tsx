@@ -1,16 +1,70 @@
-import { Link, useRouterState } from "@tanstack/react-router";
-import { Bell, ChevronDown, Menu, Moon, PanelLeftClose, PanelLeftOpen, Search, Sun, X } from "lucide-react";
+import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
+import { useQueryClient } from "@tanstack/react-query";
+import { Bell, ChevronDown, LogOut, Menu, Moon, PanelLeftClose, PanelLeftOpen, Search, Sun, X } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
 
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { supabase } from "@/integrations/supabase/client";
+import { initials, useAuth, useProfile } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
 import { modules } from "./module-catalog";
+
+function AccountMenu() {
+  const { user } = useAuth();
+  const profile = useProfile(user?.id);
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const [signingOut, setSigningOut] = useState(false);
+
+  const name = profile?.full_name ?? (user?.user_metadata?.['full_name'] as string | undefined) ?? null;
+  const email = profile?.email ?? user?.email ?? null;
+
+  async function handleSignOut() {
+    setSigningOut(true);
+    await queryClient.cancelQueries();
+    queryClient.clear();
+    await supabase.auth.signOut();
+    navigate({ to: "/auth", replace: true });
+  }
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="secondary" size="icon" className="text-xs font-bold" aria-label="Open account menu">
+          {initials(name, email)}
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-56">
+        <DropdownMenuLabel className="space-y-0.5">
+          <span className="block truncate text-sm font-semibold">{name ?? "Your account"}</span>
+          {email && <span className="block truncate font-mono text-[10px] font-normal text-muted-foreground">{email}</span>}
+        </DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem asChild>
+          <Link to="/settings">Workspace settings</Link>
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onSelect={(event) => { event.preventDefault(); void handleSignOut(); }} disabled={signingOut}>
+          <LogOut className="size-4" /> {signingOut ? "Signing out…" : "Sign out"}
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
 
 const groups = ["Overview", "Operations", "Intelligence"] as const;
 
 function Brand({ compact = false }: { compact?: boolean }) {
   return (
-    <Link to="/" className="flex min-w-0 items-center gap-2.5" aria-label="NEXORA dashboard">
+    <Link to="/dashboard" className="flex min-w-0 items-center gap-2.5" aria-label="NEXORA dashboard">
       <span className="grid size-8 shrink-0 place-items-center rounded-md bg-primary text-sm font-extrabold text-primary-foreground shadow-command">N</span>
       {!compact && (
         <span className="min-w-0 leading-none">
@@ -36,7 +90,7 @@ function Navigation({ compact = false, onNavigate }: { compact?: boolean; onNavi
                   key={item.path}
                   to={item.path}
                   onClick={onNavigate}
-                  activeOptions={{ exact: item.path === "/" }}
+                  activeOptions={{ exact: item.path === "/dashboard" }}
                   className={cn("group flex h-9 items-center gap-3 rounded-md px-3 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-foreground", compact && "justify-center px-0")}
                   activeProps={{ className: "bg-primary font-semibold text-primary-foreground hover:bg-primary hover:text-primary-foreground" }}
                   title={compact ? item.title : undefined}
@@ -126,7 +180,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             <div className="flex items-center gap-1.5">
               <Button variant="outline" size="icon" aria-label="Notifications" title="Notifications" className="relative"><Bell /><span className="absolute right-2 top-2 size-1.5 rounded-full bg-primary" /></Button>
               <Button variant="outline" size="icon" onClick={toggleTheme} aria-label={dark ? "Use light mode" : "Use dark mode"} title={dark ? "Use light mode" : "Use dark mode"}>{dark ? <Sun /> : <Moon />}</Button>
-              <Button variant="secondary" size="icon" className="text-xs font-bold" aria-label="Open profile">NX</Button>
+              <AccountMenu />
             </div>
           </header>
           <main className="flex-1 p-4 md:p-6 lg:p-8">{children}</main>
