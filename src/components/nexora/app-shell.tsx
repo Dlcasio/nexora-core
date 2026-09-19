@@ -64,7 +64,7 @@ const groups = ["Overview", "Operations", "Intelligence"] as const;
 
 function Brand({ compact = false }: { compact?: boolean }) {
   return (
-    <Link to="/" className="flex min-w-0 items-center gap-2.5" aria-label="NEXORA dashboard">
+    <Link to="/dashboard" className="flex min-w-0 items-center gap-2.5" aria-label="NEXORA dashboard">
       <span className="grid size-8 shrink-0 place-items-center rounded-md bg-primary text-sm font-extrabold text-primary-foreground shadow-command">N</span>
       {!compact && (
         <span className="min-w-0 leading-none">
@@ -90,7 +90,7 @@ function Navigation({ compact = false, onNavigate }: { compact?: boolean; onNavi
                   key={item.path}
                   to={item.path}
                   onClick={onNavigate}
-                  activeOptions={{ exact: item.path === "/" }}
+                  activeOptions={{ exact: item.path === "/dashboard" }}
                   className={cn("group flex h-9 items-center gap-3 rounded-md px-3 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-foreground", compact && "justify-center px-0")}
                   activeProps={{ className: "bg-primary font-semibold text-primary-foreground hover:bg-primary hover:text-primary-foreground" }}
                   title={compact ? item.title : undefined}
@@ -180,7 +180,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             <div className="flex items-center gap-1.5">
               <Button variant="outline" size="icon" aria-label="Notifications" title="Notifications" className="relative"><Bell /><span className="absolute right-2 top-2 size-1.5 rounded-full bg-primary" /></Button>
               <Button variant="outline" size="icon" onClick={toggleTheme} aria-label={dark ? "Use light mode" : "Use dark mode"} title={dark ? "Use light mode" : "Use dark mode"}>{dark ? <Sun /> : <Moon />}</Button>
-              <Button variant="secondary" size="icon" className="text-xs font-bold" aria-label="Open profile">NX</Button>
+              <AccountMenu />
             </div>
           </header>
           <main className="flex-1 p-4 md:p-6 lg:p-8">{children}</main>
