@@ -3,6 +3,7 @@ import {
   Bot,
   Boxes,
   BriefcaseBusiness,
+  Building2,
   ChartNoAxesCombined,
   CircleDollarSign,
   FolderKanban,
@@ -49,7 +50,8 @@ export const modules: ModuleDefinition[] = [
   { title: "Analytics", description: "Signals and trends", path: "/analytics", icon: BarChart3, group: "Intelligence", code: "07" },
   { title: "Automation", description: "Rules and workflows", path: "/automation", icon: Workflow, group: "Intelligence", code: "08" },
   { title: "AI Assistant", description: "Ask across NEXORA", path: "/ai-assistant", icon: Bot, group: "Intelligence", code: "09", featured: true },
-  { title: "Settings", description: "Workspace preferences", path: "/settings", icon: Settings, group: "System", code: "10" },
+  { title: "Organization", description: "Your organization profile", path: "/organization", icon: Building2, group: "System", code: "10" },
+  { title: "Settings", description: "Workspace preferences", path: "/settings", icon: Settings, group: "System", code: "11" },
 ];
 
 export const dashboardModules = modules.filter((item) => item.group !== "Overview" && item.group !== "System");
