@@ -149,6 +149,9 @@ export function AppShell({ children }: { children: ReactNode }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [dark, setDark] = useState(false);
   const currentTitle = modules.find((item) => item.path === pathname)?.title ?? "Dashboard";
+  const { data: membership } = useCurrentOrganization();
+  const organizationName = membership?.organization.name ?? "NEXORA Workspace";
+  const organizationMeta = membership?.organization.company_size ?? "Enterprise";
 
   useEffect(() => {
     const stored = window.localStorage.getItem("nexora-theme");
@@ -172,7 +175,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         {mobileOpen && <Button variant="ghost" aria-label="Close navigation" className="fixed inset-0 z-40 h-auto rounded-none bg-overlay p-0 hover:bg-overlay md:hidden" onClick={() => setMobileOpen(false)} />}
         <aside className={cn("fixed inset-y-0 left-0 z-50 flex w-[288px] flex-col border-r border-border bg-sidebar shadow-2xl transition-transform duration-300 md:hidden", mobileOpen ? "translate-x-0" : "-translate-x-full")}>
           <div className="flex h-16 items-center justify-between border-b border-border px-5"><Brand /><Button variant="ghost" size="icon" onClick={() => setMobileOpen(false)} aria-label="Close navigation"><X /></Button></div>
-          <div className="px-4 pb-2 pt-4"><div className="rounded-md border border-border bg-card/70 px-3 py-2"><p className="text-xs font-semibold">NEXORA Workspace</p><p className="font-mono text-[10px] text-muted-foreground">Enterprise</p></div></div>
+          <div className="px-4 pb-2 pt-4"><Link to="/organization" onClick={() => setMobileOpen(false)} className="block rounded-md border border-border bg-card/70 px-3 py-2"><p className="truncate text-xs font-semibold">{organizationName}</p><p className="font-mono text-[10px] text-muted-foreground">{organizationMeta}</p></Link></div>
           <Navigation onNavigate={() => setMobileOpen(false)} />
           <div className="border-t border-border p-3">{modules.filter((item) => item.group === "System").map((item) => { const Icon = item.icon; return <Link key={item.path} to={item.path} onClick={() => setMobileOpen(false)} className="flex h-9 items-center gap-3 rounded-md px-3 text-sm text-muted-foreground hover:bg-accent"><Icon className="size-4" />{item.title}</Link>; })}</div>
         </aside>
