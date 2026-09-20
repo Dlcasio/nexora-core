@@ -118,12 +118,14 @@ function Sidebar({ compact, onToggle }: { compact: boolean; onToggle: () => void
       <div className={cn("flex h-16 items-center border-b border-border px-5", compact && "justify-center px-0")}><Brand compact={compact} /></div>
       {!compact && (
         <div className="px-4 pb-2 pt-4">
-          <Button variant="outline" className="h-auto w-full justify-between bg-card/70 px-3 py-2 text-left">
-            <span className="flex min-w-0 items-center gap-2">
-              <span className="grid size-6 shrink-0 place-items-center rounded bg-secondary font-mono text-[10px] font-bold text-muted-foreground">NX</span>
-              <span className="min-w-0"><span className="block truncate text-xs font-semibold">NEXORA Workspace</span><span className="block font-mono text-[10px] text-muted-foreground">Enterprise</span></span>
-            </span>
-            <ChevronDown className="size-3.5 text-muted-foreground" />
+          <Button asChild variant="outline" className="h-auto w-full justify-between bg-card/70 px-3 py-2 text-left">
+            <Link to="/organization">
+              <span className="flex min-w-0 items-center gap-2">
+                <span className="grid size-6 shrink-0 place-items-center rounded bg-secondary font-mono text-[10px] font-bold text-muted-foreground">{initials(orgName, null)}</span>
+                <span className="min-w-0"><span className="block truncate text-xs font-semibold">{orgName}</span><span className="block font-mono text-[10px] text-muted-foreground">{orgMeta}</span></span>
+              </span>
+              <ChevronDown className="size-3.5 text-muted-foreground" />
+            </Link>
           </Button>
         </div>
       )}
