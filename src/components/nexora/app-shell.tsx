@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { supabase } from "@/integrations/supabase/client";
 import { initials, useAuth, useProfile } from "@/hooks/use-auth";
+import { useCurrentOrganization } from "@/hooks/use-organization";
 import { cn } from "@/lib/utils";
 import { modules } from "./module-catalog";
 
