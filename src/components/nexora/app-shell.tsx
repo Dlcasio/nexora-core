@@ -110,6 +110,9 @@ function Navigation({ compact = false, onNavigate }: { compact?: boolean; onNavi
 }
 
 function Sidebar({ compact, onToggle }: { compact: boolean; onToggle: () => void }) {
+  const { data: membership } = useCurrentOrganization();
+  const orgName = membership?.organization.name ?? "NEXORA Workspace";
+  const orgMeta = membership?.organization.company_size ?? "Enterprise";
   return (
     <aside className={cn("sticky top-0 hidden h-screen shrink-0 flex-col border-r border-border bg-sidebar/75 backdrop-blur-xl transition-[width] duration-300 md:flex", compact ? "w-[76px]" : "w-[264px]")}>
       <div className={cn("flex h-16 items-center border-b border-border px-5", compact && "justify-center px-0")}><Brand compact={compact} /></div>
