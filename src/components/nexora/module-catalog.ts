@@ -25,6 +25,7 @@ export type ModulePath =
   | "/analytics"
   | "/automation"
   | "/ai-assistant"
+  | "/organization"
   | "/settings";
 
 export type ModuleDefinition = {
