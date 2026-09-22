@@ -3,6 +3,8 @@ import { Building2, Loader2, Users } from "lucide-react";
 
 import { useCurrentOrganization, useOrganizationMembers } from "@/hooks/use-organization";
 import { initials } from "@/hooks/use-auth";
+import { RequirePermission } from "@/components/nexora/permission-gate";
+import { ROLE_LABELS, type Role } from "@/lib/permissions";
 
 export const Route = createFileRoute("/_authenticated/organization")({
   head: () => ({
@@ -15,7 +17,11 @@ export const Route = createFileRoute("/_authenticated/organization")({
       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
-  component: OrganizationPage,
+  component: () => (
+    <RequirePermission module="organization">
+      <OrganizationPage />
+    </RequirePermission>
+  ),
 });
 
 function Detail({ label, value }: { label: string; value: string }) {
@@ -62,7 +68,7 @@ function OrganizationPage() {
             <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground">Organization</p>
             <h1 className="truncate text-2xl font-extrabold">{organization.name}</h1>
             <p className="mt-1 font-mono text-[11px] text-muted-foreground">
-              Your role · <span className="text-foreground">{role}</span>
+              Your role · <span className="text-foreground">{ROLE_LABELS[role as Role] ?? role}</span>
             </p>
           </div>
         </div>
@@ -97,7 +103,7 @@ function OrganizationPage() {
                   )}
                 </span>
                 <span className="rounded border border-border px-2 py-0.5 font-mono text-[10px] uppercase text-muted-foreground">
-                  {member.role}
+                  {ROLE_LABELS[member.role as Role] ?? member.role}
                 </span>
               </li>
             ))}

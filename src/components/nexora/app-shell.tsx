@@ -154,6 +154,8 @@ export function AppShell({ children }: { children: ReactNode }) {
   const [dark, setDark] = useState(false);
   const currentTitle = modules.find((item) => item.path === pathname)?.title ?? "Dashboard";
   const { data: membership } = useCurrentOrganization();
+  const { can } = usePermissions();
+  const systemModules = modules.filter((item) => item.group === "System" && can(item.permission));
   const organizationName = membership?.organization.name ?? "NEXORA Workspace";
   const organizationMeta = membership?.organization.company_size ?? "Enterprise";
 
