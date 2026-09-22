@@ -15,6 +15,13 @@
       "when": 1789899076585,
       "tag": "0001_create_organizations_foundation",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1790051812414,
+      "tag": "0002_extend_org_roles",
+      "breakpoints": true
     }
   ]
 }
