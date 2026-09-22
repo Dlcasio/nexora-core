@@ -1,9 +1,12 @@
 import { Clock3 } from "lucide-react";
+
+import { RequirePermission } from "./permission-gate";
 import type { ModuleDefinition } from "./module-catalog";
 
 export function ModulePage({ module }: { module: ModuleDefinition }) {
   const Icon = module.icon;
   return (
+    <RequirePermission module={module.permission}>
     <div className="mx-auto max-w-6xl animate-nx-rise">
       <div className="mb-6 flex items-end justify-between gap-4">
         <div>
@@ -19,5 +22,6 @@ export function ModulePage({ module }: { module: ModuleDefinition }) {
         <span className="mt-5 inline-flex items-center gap-2 rounded-md border border-border bg-background/50 px-3 py-2 font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground"><Clock3 className="size-3.5" /> Module not configured</span>
       </section>
     </div>
+    </RequirePermission>
   );
 }
