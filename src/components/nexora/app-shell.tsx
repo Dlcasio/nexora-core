@@ -15,6 +15,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { initials, useAuth, useProfile } from "@/hooks/use-auth";
 import { useCurrentOrganization } from "@/hooks/use-organization";
+import { usePermissions } from "@/hooks/use-permissions";
 import { cn } from "@/lib/utils";
 import { modules } from "./module-catalog";
 
@@ -78,13 +79,14 @@ function Brand({ compact = false }: { compact?: boolean }) {
 }
 
 function Navigation({ compact = false, onNavigate }: { compact?: boolean; onNavigate?: () => void }) {
+  const { can } = usePermissions();
   return (
     <nav className="flex-1 space-y-5 overflow-y-auto px-3 py-3" aria-label="Primary navigation">
       {groups.map((group) => (
         <div key={group}>
           {!compact && <p className="mb-2 px-3 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">{group}</p>}
           <div className="space-y-0.5">
-            {modules.filter((item) => item.group === group).map((item) => {
+            {modules.filter((item) => item.group === group && can(item.permission)).map((item) => {
               const Icon = item.icon;
               return (
                 <Link
@@ -111,6 +113,8 @@ function Navigation({ compact = false, onNavigate }: { compact?: boolean; onNavi
 
 function Sidebar({ compact, onToggle }: { compact: boolean; onToggle: () => void }) {
   const { data: membership } = useCurrentOrganization();
+  const { can } = usePermissions();
+  const systemModules = modules.filter((item) => item.group === "System" && can(item.permission));
   const orgName = membership?.organization.name ?? "NEXORA Workspace";
   const orgMeta = membership?.organization.company_size ?? "Enterprise";
   return (
@@ -131,7 +135,7 @@ function Sidebar({ compact, onToggle }: { compact: boolean; onToggle: () => void
       )}
       <Navigation compact={compact} />
       <div className="border-t border-border p-3">
-        {!compact && modules.filter((item) => item.group === "System").map((item) => {
+        {!compact && systemModules.map((item) => {
           const Icon = item.icon;
           return <Link key={item.path} to={item.path} className="flex h-9 items-center gap-3 rounded-md px-3 text-sm text-muted-foreground hover:bg-accent hover:text-foreground" activeProps={{ className: "bg-primary font-semibold text-primary-foreground" }}><Icon className="size-4" />{item.title}</Link>;
         })}
@@ -150,6 +154,8 @@ export function AppShell({ children }: { children: ReactNode }) {
   const [dark, setDark] = useState(false);
   const currentTitle = modules.find((item) => item.path === pathname)?.title ?? "Dashboard";
   const { data: membership } = useCurrentOrganization();
+  const { can } = usePermissions();
+  const systemModules = modules.filter((item) => item.group === "System" && can(item.permission));
   const organizationName = membership?.organization.name ?? "NEXORA Workspace";
   const organizationMeta = membership?.organization.company_size ?? "Enterprise";
 
@@ -177,7 +183,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           <div className="flex h-16 items-center justify-between border-b border-border px-5"><Brand /><Button variant="ghost" size="icon" onClick={() => setMobileOpen(false)} aria-label="Close navigation"><X /></Button></div>
           <div className="px-4 pb-2 pt-4"><Link to="/organization" onClick={() => setMobileOpen(false)} className="block rounded-md border border-border bg-card/70 px-3 py-2"><p className="truncate text-xs font-semibold">{organizationName}</p><p className="font-mono text-[10px] text-muted-foreground">{organizationMeta}</p></Link></div>
           <Navigation onNavigate={() => setMobileOpen(false)} />
-          <div className="border-t border-border p-3">{modules.filter((item) => item.group === "System").map((item) => { const Icon = item.icon; return <Link key={item.path} to={item.path} onClick={() => setMobileOpen(false)} className="flex h-9 items-center gap-3 rounded-md px-3 text-sm text-muted-foreground hover:bg-accent"><Icon className="size-4" />{item.title}</Link>; })}</div>
+          <div className="border-t border-border p-3">{systemModules.map((item) => { const Icon = item.icon; return <Link key={item.path} to={item.path} onClick={() => setMobileOpen(false)} className="flex h-9 items-center gap-3 rounded-md px-3 text-sm text-muted-foreground hover:bg-accent"><Icon className="size-4" />{item.title}</Link>; })}</div>
         </aside>
         <div className="flex min-w-0 flex-1 flex-col">
           <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-border bg-background/75 px-4 backdrop-blur-xl md:px-6">

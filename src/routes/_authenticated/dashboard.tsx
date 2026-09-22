@@ -1,6 +1,7 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { ArrowRight, CircleCheck, Sparkles } from "lucide-react";
 import { dashboardModules } from "@/components/nexora/module-catalog";
+import { usePermissions } from "@/hooks/use-permissions";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
@@ -17,6 +18,8 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
 });
 
 function DashboardPage() {
+  const { can } = usePermissions();
+  const visibleModules = dashboardModules.filter((module) => can(module.permission));
   return (
     <div className="mx-auto max-w-6xl animate-nx-rise">
       <div className="mb-6 flex items-end justify-between gap-4">
@@ -28,7 +31,7 @@ function DashboardPage() {
         <span className="hidden items-center gap-2 font-mono text-[11px] text-muted-foreground sm:flex"><span className="size-1.5 rounded-full bg-status" /> All systems nominal</span>
       </div>
       <div className="grid grid-cols-2 gap-3 md:gap-4 lg:grid-cols-3">
-        {dashboardModules.slice(0, 6).map((module, index) => {
+        {visibleModules.slice(0, 6).map((module, index) => {
           const Icon = module.icon;
           return (
             <Link key={module.path} to={module.path} className="group rounded-lg border border-border bg-card/60 p-4 backdrop-blur-xl transition-colors hover:border-border-strong hover:bg-card">

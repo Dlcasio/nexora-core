@@ -46,6 +46,44 @@ export type Database = {
           },
         ]
       }
+      organization_role_permissions: {
+        Row: {
+          access: string
+          created_at: string
+          id: string
+          module: string
+          organization_id: string
+          role: Database["public"]["Enums"]["org_role"]
+          updated_at: string
+        }
+        Insert: {
+          access: string
+          created_at?: string
+          id?: string
+          module: string
+          organization_id: string
+          role: Database["public"]["Enums"]["org_role"]
+          updated_at?: string
+        }
+        Update: {
+          access?: string
+          created_at?: string
+          id?: string
+          module?: string
+          organization_id?: string
+          role?: Database["public"]["Enums"]["org_role"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "organization_role_permissions_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       organizations: {
         Row: {
           business_type: string
@@ -103,6 +141,24 @@ export type Database = {
         }
         Relationships: []
       }
+      role_permissions: {
+        Row: {
+          access: string
+          module: string
+          role: Database["public"]["Enums"]["org_role"]
+        }
+        Insert: {
+          access: string
+          module: string
+          role: Database["public"]["Enums"]["org_role"]
+        }
+        Update: {
+          access?: string
+          module?: string
+          role?: Database["public"]["Enums"]["org_role"]
+        }
+        Relationships: []
+      }
       user_profiles: {
         Row: {
           created_at: string
@@ -143,6 +199,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      has_module_access: {
+        Args: {
+          _min?: string
+          _module: string
+          _organization_id: string
+          _user_id: string
+        }
+        Returns: boolean
+      }
       has_org_role: {
         Args: {
           _organization_id: string
@@ -155,9 +220,20 @@ export type Database = {
         Args: { _organization_id: string; _user_id: string }
         Returns: boolean
       }
+      module_access: {
+        Args: { _module: string; _organization_id: string; _user_id: string }
+        Returns: string
+      }
     }
     Enums: {
-      org_role: "owner" | "admin" | "member"
+      org_role:
+        | "owner"
+        | "admin"
+        | "member"
+        | "administrator"
+        | "manager"
+        | "employee"
+        | "viewer"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -285,7 +361,15 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      org_role: ["owner", "admin", "member"],
+      org_role: [
+        "owner",
+        "admin",
+        "member",
+        "administrator",
+        "manager",
+        "employee",
+        "viewer",
+      ],
     },
   },
 } as const
