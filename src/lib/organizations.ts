@@ -21,7 +21,9 @@ export const COMPANY_SIZES = [
   "1000+ employees",
 ] as const;
 
-export type OrgRole = "owner" | "admin" | "member";
+import type { Role } from "./permissions";
+
+export type OrgRole = Role;
 
 export type Organization = {
   id: string;
