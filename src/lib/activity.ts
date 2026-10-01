@@ -25,7 +25,7 @@ export async function logActivity(input: {
     _organization_id: input.organizationId,
     _action: input.action,
     _entity_type: input.entityType,
-    _entity_id: input.entityId ?? undefined,
+    _entity_id: (input.entityId ?? null) as string,
     _description: input.description,
     _metadata: (input.metadata ?? {}) as never,
   });
