@@ -19,6 +19,7 @@ export type Database = {
           action: string
           actor_id: string | null
           created_at: string
+          description: string | null
           entity_id: string | null
           entity_type: string
           id: string
@@ -29,6 +30,7 @@ export type Database = {
           action: string
           actor_id?: string | null
           created_at?: string
+          description?: string | null
           entity_id?: string | null
           entity_type: string
           id?: string
@@ -39,6 +41,7 @@ export type Database = {
           action?: string
           actor_id?: string | null
           created_at?: string
+          description?: string | null
           entity_id?: string | null
           entity_type?: string
           id?: string
@@ -902,6 +905,17 @@ export type Database = {
       is_org_member: {
         Args: { _organization_id: string; _user_id: string }
         Returns: boolean
+      }
+      log_activity: {
+        Args: {
+          _action: string
+          _description: string
+          _entity_id: string
+          _entity_type: string
+          _metadata?: Json
+          _organization_id: string
+        }
+        Returns: string
       }
       module_access: {
         Args: { _module: string; _organization_id: string; _user_id: string }

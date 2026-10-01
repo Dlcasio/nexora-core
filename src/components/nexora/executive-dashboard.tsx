@@ -22,6 +22,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useCurrentOrganization } from "@/hooks/use-organization";
 import { type DashboardMetric, useExecutiveDashboard } from "@/lib/dashboard-data";
 import { cn } from "@/lib/utils";
+import { RecentActivity } from "@/components/nexora/recent-activity";
 
 const metricIcons = {
   revenue: CircleDollarSign,
@@ -214,7 +215,7 @@ export function ExecutiveDashboard() {
       </section>
 
       <div className="grid gap-4 xl:grid-cols-3"><RevenuePanel data={data.financialTrend} /><ExpensePanel data={data.expenseMix} /></div>
-      <div className="mt-4 grid gap-4 lg:grid-cols-2"><ActivityPanel items={data.activity} /><InventoryPanel items={data.inventoryAlerts} /></div>
+      <div className="mt-4 grid gap-4 lg:grid-cols-2"><RecentActivity /><InventoryPanel items={data.inventoryAlerts} /></div>
       <div className="mt-4 grid gap-4 xl:grid-cols-3"><TransactionsPanel items={data.transactions} /><TasksPanel items={data.tasks} /></div>
     </div>
   );
