@@ -83,7 +83,7 @@ function friendly(error: { code?: string; message: string }) {
 export function useSaveProduct(organizationId: string | undefined) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, input }: { id?: string; input: ProductInput }) => {
+    mutationFn: async ({ id, input }: { id?: string | undefined; input: ProductInput }) => {
       if (!organizationId) throw new Error("No organization selected.");
       const query = id
         ? supabase.from("products").update(input).eq("id", id).eq("organization_id", organizationId)

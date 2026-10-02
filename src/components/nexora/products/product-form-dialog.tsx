@@ -26,9 +26,9 @@ function toForm(p?: Product | null): FormState {
 function validate(f: FormState): { input?: ProductInput; errors: Record<string, string> } {
   const errors: Record<string, string> = {};
   const name = f.name.trim();
-  if (!name) errors.name = "Name is required.";
-  else if (name.length > 200) errors.name = "Keep it under 200 characters.";
-  if (f.sku.trim().length > 64) errors.sku = "Keep it under 64 characters.";
+  if (!name) errors["name"] = "Name is required.";
+  else if (name.length > 200) errors["name"] = "Keep it under 200 characters.";
+  if (f.sku.trim().length > 64) errors["sku"] = "Keep it under 64 characters.";
   const money = (v: string, k: string) => {
     const n = Number(v);
     if (v.trim() === "" || !Number.isFinite(n) || n < 0) errors[k] = "Enter an amount of 0 or more.";
