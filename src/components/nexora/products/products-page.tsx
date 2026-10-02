@@ -1,3 +1,4 @@
+import { ProductFormDialog as ProductFormDialogLazy } from "./product-form-dialog";
 import { MoreHorizontal, Package, Pencil, Plus, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -182,5 +183,3 @@ function ProductsInner() {
     </div>
   );
 }
-
-import { ProductFormDialog as ProductFormDialogLazy } from "./product-form-dialog";
