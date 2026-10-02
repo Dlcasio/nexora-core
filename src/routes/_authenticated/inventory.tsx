@@ -1,6 +1,3 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { ModulePage } from "@/components/nexora/module-page";
-import { modules } from "@/components/nexora/module-catalog";
-const moduleItem = modules.find((item) => item.path === "/inventory");
-export const Route = createFileRoute("/_authenticated/inventory")({ head: () => ({ meta: [{ title: "Inventory — NEXORA" }, { name: "description", content: "NEXORA inventory workspace foundation." }, { property: "og:title", content: "Inventory — NEXORA" }, { property: "og:description", content: "Inventory operations workspace in NEXORA." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary_large_image" }] }), component: Page });
-function Page() { return moduleItem ? <ModulePage module={moduleItem} /> : null; }
+import { ProductsPage } from "@/components/nexora/products/products-page";
+export const Route = createFileRoute("/_authenticated/inventory")({ head: () => ({ meta: [{ title: "Products — NEXORA Inventory" }, { name: "description", content: "Manage products, pricing and stock levels in NEXORA." }, { property: "og:title", content: "Products — NEXORA Inventory" }, { property: "og:description", content: "Products, pricing and stock levels for your organization." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary_large_image" }] }), component: ProductsPage });
