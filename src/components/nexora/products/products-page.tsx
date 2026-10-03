@@ -46,7 +46,8 @@ function ProductsInner() {
   const [status, setStatus] = useState("all");
   const [editing, setEditing] = useState<Product | null>(null);
   const [formOpen, setFormOpen] = useState(false);
-  const [viewing, setViewing] = useState<Product | null>(null);
+  const [viewingRaw, setViewing] = useState<Product | null>(null);
+  const viewing = viewingRaw ? products.data?.find((p) => p.id === viewingRaw.id) ?? viewingRaw : null;
   const [deleting, setDeleting] = useState<Product | null>(null);
   const [catsOpen, setCatsOpen] = useState(false);
   const [moving, setMoving] = useState<{ product: Product; kind: MovementKind } | null>(null);
