@@ -130,3 +130,69 @@ export function useCreateCategory(organizationId: string | undefined) {
 
 export const money = (n: number) =>
   new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(n);
+
+export function useUpdateCategory(organizationId: string | undefined) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, name }: { id: string; name: string }) => {
+      const { error } = await supabase.from("categories").update({ name }).eq("id", id).eq("organization_id", organizationId!);
+      if (error) throw friendly(error);
+    },
+    onSuccess: () => void qc.invalidateQueries({ queryKey: ["categories", organizationId] }),
+  });
+}
+
+export function useDeleteCategory(organizationId: string | undefined) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("categories").delete().eq("id", id).eq("organization_id", organizationId!);
+      if (error) throw friendly(error);
+    },
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ["categories", organizationId] });
+      void qc.invalidateQueries({ queryKey: ["products", organizationId] });
+    },
+  });
+}
+
+export type MovementType = "initial" | "stock_in" | "stock_out" | "adjustment" | "sale" | "sale_reversal";
+export const MOVEMENT_LABEL: Record<MovementType, string> = {
+  initial: "Opening stock", stock_in: "Stock in", stock_out: "Stock out", adjustment: "Adjustment", sale: "Sale", sale_reversal: "Sale reversed",
+};
+export type StockMovement = {
+  id: string; product_id: string; movement_type: MovementType; quantity_change: number; quantity_after: number; note: string | null; created_at: string;
+};
+
+export function useStockMovements(organizationId: string | undefined, productId?: string) {
+  return useQuery({
+    queryKey: ["stock-movements", organizationId, productId ?? "all"],
+    enabled: !!organizationId,
+    queryFn: async (): Promise<StockMovement[]> => {
+      let q = supabase
+        .from("stock_movements")
+        .select("id, product_id, movement_type, quantity_change, quantity_after, note, created_at")
+        .eq("organization_id", organizationId!)
+        .order("created_at", { ascending: false })
+        .limit(productId ? 50 : 200);
+      if (productId) q = q.eq("product_id", productId);
+      const { data, error } = await q;
+      if (error) throw error;
+      return (data ?? []) as StockMovement[];
+    },
+  });
+}
+
+export function useRecordMovement(organizationId: string | undefined) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (v: { productId: string; type: "stock_in" | "stock_out" | "adjustment"; quantity: number; note: string }) => {
+      const { error } = await supabase.rpc("record_stock_movement", { _product_id: v.productId, _type: v.type, _quantity: v.quantity, _note: v.note });
+      if (error) throw friendly(error);
+    },
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ["products", organizationId] });
+      void qc.invalidateQueries({ queryKey: ["stock-movements", organizationId] });
+    },
+  });
+}

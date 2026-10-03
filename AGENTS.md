@@ -8,3 +8,6 @@
 > Commits you push to the connected branch sync back to Lovable and show up in
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
+
+## Architecture rules
+- Stock quantities change only via the `record_stock_movement` RPC or sale triggers; every change writes a `stock_movements` row, so history stays complete and stock can never go negative.

@@ -1,5 +1,10 @@
 import { ProductFormDialog as ProductFormDialogLazy } from "./product-form-dialog";
-import { MoreHorizontal, Package, Pencil, Plus, Trash2 } from "lucide-react";
+import { ArrowDownToLine, ArrowUpFromLine, MoreHorizontal, Package, Pencil, Plus, SlidersHorizontal, Tags, Trash2 } from "lucide-react";
+import { CategoryManagerDialog } from "./category-manager-dialog";
+import { MovementHistory, ProductMovements } from "./movement-history";
+import { StockMovementDialog, type MovementKind } from "./stock-movement-dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
@@ -41,8 +46,12 @@ function ProductsInner() {
   const [status, setStatus] = useState("all");
   const [editing, setEditing] = useState<Product | null>(null);
   const [formOpen, setFormOpen] = useState(false);
-  const [viewing, setViewing] = useState<Product | null>(null);
+  const [viewingRaw, setViewing] = useState<Product | null>(null);
+  const viewing = viewingRaw ? products.data?.find((p) => p.id === viewingRaw.id) ?? viewingRaw : null;
   const [deleting, setDeleting] = useState<Product | null>(null);
+  const [catsOpen, setCatsOpen] = useState(false);
+  const [moving, setMoving] = useState<{ product: Product; kind: MovementKind } | null>(null);
+  const move = (product: Product, kind: MovementKind) => setMoving({ product, kind });
 
   const catName = useMemo(() => new Map(categories.map((c) => [c.id, c.name])), [categories]);
 
@@ -75,6 +84,10 @@ function ProductsInner() {
         <DropdownMenu>
           <DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="size-8" aria-label={`Actions for ${p.name}`}><MoreHorizontal className="size-4" /></Button></DropdownMenuTrigger>
           <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => move(p, "stock_in")}><ArrowDownToLine className="size-4" />Stock in</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => move(p, "stock_out")}><ArrowUpFromLine className="size-4" />Stock out</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => move(p, "adjustment")}><SlidersHorizontal className="size-4" />Adjust stock</DropdownMenuItem>
+            <DropdownMenuSeparator />
             <DropdownMenuItem onClick={() => openEdit(p)}><Pencil className="size-4" />Edit</DropdownMenuItem>
             <DropdownMenuItem onClick={() => setDeleting(p)} className="text-destructive focus:text-destructive"><Trash2 className="size-4" />Delete</DropdownMenuItem>
           </DropdownMenuContent>
@@ -84,7 +97,8 @@ function ProductsInner() {
   ];
 
   const total = products.data?.length ?? 0;
-  const low = (products.data ?? []).filter((p) => stockState(p) !== "in_stock").length;
+  const lowCount = (products.data ?? []).filter((p) => stockState(p) === "low").length;
+  const outCount = (products.data ?? []).filter((p) => stockState(p) === "out").length;
 
   return (
     <div className="mx-auto max-w-6xl animate-nx-rise">
@@ -92,11 +106,22 @@ function ProductsInner() {
         <div>
           <p className="mb-1 font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground">NEXORA · 02 · Inventory</p>
           <h1 className="text-2xl font-extrabold md:text-3xl">Products</h1>
-          <p className="mt-1 text-sm text-muted-foreground">{total} products · {low} need restocking</p>
+          <p className="mt-1 text-sm text-muted-foreground">{total} products · {lowCount} low stock · {outCount} out of stock</p>
         </div>
-        {canManage && <Button onClick={() => openEdit(null)}><Plus className="size-4" />New product</Button>}
+        {canManage && (
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => setCatsOpen(true)}><Tags className="size-4" />Categories</Button>
+            <Button onClick={() => openEdit(null)}><Plus className="size-4" />New product</Button>
+          </div>
+        )}
       </div>
 
+      <Tabs defaultValue="products">
+      <TabsList className="mb-3">
+        <TabsTrigger value="products">Products</TabsTrigger>
+        <TabsTrigger value="movements">Movement history</TabsTrigger>
+      </TabsList>
+      <TabsContent value="products">
       <section className="rounded-lg border border-border bg-card/60 backdrop-blur-xl">
         <DataToolbar>
           <SearchInput value={search} onChange={setSearch} placeholder="Search name or SKU" />
@@ -119,6 +144,13 @@ function ProductsInner() {
           }
         />
       </section>
+      </TabsContent>
+      <TabsContent value="movements">
+        <section className="rounded-lg border border-border bg-card/60 backdrop-blur-xl">
+          <MovementHistory organizationId={orgId} products={products.data ?? []} />
+        </section>
+      </TabsContent>
+      </Tabs>
 
       <Sheet open={!!viewing} onOpenChange={(o) => !o && setViewing(null)}>
         <SheetContent className="w-full overflow-y-auto sm:max-w-md">
@@ -149,6 +181,17 @@ function ProductsInner() {
                 </dl>
                 {viewing.description && <p className="whitespace-pre-wrap text-sm text-muted-foreground">{viewing.description}</p>}
                 {canManage && (
+                  <div className="grid grid-cols-3 gap-2">
+                    <Button size="sm" variant="outline" onClick={() => move(viewing, "stock_in")}><ArrowDownToLine className="size-4" />In</Button>
+                    <Button size="sm" variant="outline" onClick={() => move(viewing, "stock_out")}><ArrowUpFromLine className="size-4" />Out</Button>
+                    <Button size="sm" variant="outline" onClick={() => move(viewing, "adjustment")}><SlidersHorizontal className="size-4" />Adjust</Button>
+                  </div>
+                )}
+                <div className="space-y-2">
+                  <h3 className="font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">Stock history</h3>
+                  <ProductMovements organizationId={orgId} productId={viewing.id} />
+                </div>
+                {canManage && (
                   <div className="flex gap-2">
                     <Button className="flex-1" onClick={() => openEdit(viewing)}><Pencil className="size-4" />Edit</Button>
                     <Button variant="outline" onClick={() => setDeleting(viewing)}><Trash2 className="size-4" />Delete</Button>
@@ -160,6 +203,12 @@ function ProductsInner() {
         </SheetContent>
       </Sheet>
 
+      {canManage && (
+        <>
+        <CategoryManagerDialog open={catsOpen} onOpenChange={setCatsOpen} categories={categories} products={products.data ?? []} organizationId={orgId} />
+        <StockMovementDialog product={moving?.product ?? null} kind={moving?.kind ?? "stock_in"} onClose={() => setMoving(null)} organizationId={orgId} />
+        </>
+      )}
       {canManage && (
         <ProductFormDialogLazy open={formOpen} onOpenChange={setFormOpen} product={editing} categories={categories} organizationId={orgId} />
       )}
