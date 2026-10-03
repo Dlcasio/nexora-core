@@ -728,6 +728,67 @@ export type Database = {
           },
         ]
       }
+      stock_movements: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          movement_type: string
+          note: string | null
+          organization_id: string
+          product_id: string
+          quantity_after: number
+          quantity_change: number
+          sale_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          movement_type: string
+          note?: string | null
+          organization_id: string
+          product_id: string
+          quantity_after: number
+          quantity_change: number
+          sale_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          movement_type?: string
+          note?: string | null
+          organization_id?: string
+          product_id?: string
+          quantity_after?: number
+          quantity_change?: number
+          sale_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stock_movements_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_movements_product_id_organization_id_fkey"
+            columns: ["product_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id", "organization_id"]
+          },
+          {
+            foreignKeyName: "stock_movements_sale_id_fkey"
+            columns: ["sale_id"]
+            isOneToOne: false
+            referencedRelation: "sales"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       suppliers: {
         Row: {
           address: string | null
@@ -885,6 +946,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      apply_sale_stock: {
+        Args: { _direction: number; _item_id?: string; _sale_id: string }
+        Returns: undefined
+      }
       has_module_access: {
         Args: {
           _min?: string
@@ -920,6 +985,15 @@ export type Database = {
       module_access: {
         Args: { _module: string; _organization_id: string; _user_id: string }
         Returns: string
+      }
+      record_stock_movement: {
+        Args: {
+          _note?: string
+          _product_id: string
+          _quantity: number
+          _type: string
+        }
+        Returns: number
       }
     }
     Enums: {
