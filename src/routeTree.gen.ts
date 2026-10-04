@@ -24,7 +24,6 @@ import { Route as AuthenticatedFinanceRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedInventoryRouteImport } from './routes/_authenticated/inventory'
 import { Route as AuthenticatedOrganizationRouteImport } from './routes/_authenticated/organization'
 import { Route as AuthenticatedProjectsRouteImport } from './routes/_authenticated/projects'
-import { Route as AuthenticatedSalesRouteImport } from './routes/_authenticated/sales'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedTeamRouteImport } from './routes/_authenticated/team'
 
@@ -104,11 +103,6 @@ const AuthenticatedProjectsRoute = AuthenticatedProjectsRouteImport.update({
   path: '/projects',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedSalesRoute = AuthenticatedSalesRouteImport.update({
-  id: '/sales',
-  path: '/sales',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
 const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
@@ -135,7 +129,6 @@ export interface FileRoutesByFullPath {
   '/inventory': typeof AuthenticatedInventoryRoute
   '/organization': typeof AuthenticatedOrganizationRoute
   '/projects': typeof AuthenticatedProjectsRoute
-  '/sales': typeof AuthenticatedSalesRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/team': typeof AuthenticatedTeamRoute
 }
@@ -154,7 +147,6 @@ export interface FileRoutesByTo {
   '/inventory': typeof AuthenticatedInventoryRoute
   '/organization': typeof AuthenticatedOrganizationRoute
   '/projects': typeof AuthenticatedProjectsRoute
-  '/sales': typeof AuthenticatedSalesRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/team': typeof AuthenticatedTeamRoute
 }
@@ -175,7 +167,6 @@ export interface FileRoutesById {
   '/_authenticated/inventory': typeof AuthenticatedInventoryRoute
   '/_authenticated/organization': typeof AuthenticatedOrganizationRoute
   '/_authenticated/projects': typeof AuthenticatedProjectsRoute
-  '/_authenticated/sales': typeof AuthenticatedSalesRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/team': typeof AuthenticatedTeamRoute
 }
@@ -196,7 +187,6 @@ export interface FileRouteTypes {
     | '/inventory'
     | '/organization'
     | '/projects'
-    | '/sales'
     | '/settings'
     | '/team'
   fileRoutesByTo: FileRoutesByTo
@@ -215,7 +205,6 @@ export interface FileRouteTypes {
     | '/inventory'
     | '/organization'
     | '/projects'
-    | '/sales'
     | '/settings'
     | '/team'
   id:
@@ -235,7 +224,6 @@ export interface FileRouteTypes {
     | '/_authenticated/inventory'
     | '/_authenticated/organization'
     | '/_authenticated/projects'
-    | '/_authenticated/sales'
     | '/_authenticated/settings'
     | '/_authenticated/team'
   fileRoutesById: FileRoutesById
@@ -355,13 +343,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedProjectsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/sales': {
-      id: '/_authenticated/sales'
-      path: '/sales'
-      fullPath: '/sales'
-      preLoaderRoute: typeof AuthenticatedSalesRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
     '/_authenticated/settings': {
       id: '/_authenticated/settings'
       path: '/settings'
@@ -390,7 +371,6 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedInventoryRoute: typeof AuthenticatedInventoryRoute
   AuthenticatedOrganizationRoute: typeof AuthenticatedOrganizationRoute
   AuthenticatedProjectsRoute: typeof AuthenticatedProjectsRoute
-  AuthenticatedSalesRoute: typeof AuthenticatedSalesRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedTeamRoute: typeof AuthenticatedTeamRoute
 }
@@ -406,7 +386,6 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedInventoryRoute: AuthenticatedInventoryRoute,
   AuthenticatedOrganizationRoute: AuthenticatedOrganizationRoute,
   AuthenticatedProjectsRoute: AuthenticatedProjectsRoute,
-  AuthenticatedSalesRoute: AuthenticatedSalesRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedTeamRoute: AuthenticatedTeamRoute,
 }
