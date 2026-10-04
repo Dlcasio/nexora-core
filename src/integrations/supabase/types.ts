@@ -950,6 +950,19 @@ export type Database = {
         Args: { _direction: number; _item_id?: string; _sale_id: string }
         Returns: undefined
       }
+      create_sale: {
+        Args: {
+          _customer_id: string
+          _discount: number
+          _items: Json
+          _notes: string
+          _organization_id: string
+          _sold_at: string
+          _status: Database["public"]["Enums"]["sale_status"]
+          _tax: number
+        }
+        Returns: string
+      }
       has_module_access: {
         Args: {
           _min?: string
