@@ -580,6 +580,127 @@ export type Database = {
           },
         ]
       }
+      purchase_order_items: {
+        Row: {
+          created_at: string
+          id: string
+          line_total: number | null
+          organization_id: string
+          product_id: string
+          purchase_order_id: string
+          quantity: number
+          unit_cost: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          line_total?: number | null
+          organization_id: string
+          product_id: string
+          purchase_order_id: string
+          quantity: number
+          unit_cost: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          line_total?: number | null
+          organization_id?: string
+          product_id?: string
+          purchase_order_id?: string
+          quantity?: number
+          unit_cost?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "purchase_order_items_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "purchase_order_items_product_id_organization_id_fkey"
+            columns: ["product_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id", "organization_id"]
+          },
+          {
+            foreignKeyName: "purchase_order_items_purchase_order_id_organization_id_fkey"
+            columns: ["purchase_order_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "purchase_orders"
+            referencedColumns: ["id", "organization_id"]
+          },
+        ]
+      }
+      purchase_orders: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          expected_on: string | null
+          id: string
+          notes: string | null
+          ordered_on: string
+          organization_id: string
+          received_at: string | null
+          received_by: string | null
+          reference: string
+          status: Database["public"]["Enums"]["purchase_status"]
+          supplier_id: string | null
+          total_amount: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          expected_on?: string | null
+          id?: string
+          notes?: string | null
+          ordered_on?: string
+          organization_id: string
+          received_at?: string | null
+          received_by?: string | null
+          reference: string
+          status?: Database["public"]["Enums"]["purchase_status"]
+          supplier_id?: string | null
+          total_amount?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          expected_on?: string | null
+          id?: string
+          notes?: string | null
+          ordered_on?: string
+          organization_id?: string
+          received_at?: string | null
+          received_by?: string | null
+          reference?: string
+          status?: Database["public"]["Enums"]["purchase_status"]
+          supplier_id?: string | null
+          total_amount?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "purchase_orders_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "purchase_orders_supplier_id_organization_id_fkey"
+            columns: ["supplier_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
+            referencedColumns: ["id", "organization_id"]
+          },
+        ]
+      }
       role_permissions: {
         Row: {
           access: string
@@ -737,6 +858,7 @@ export type Database = {
           note: string | null
           organization_id: string
           product_id: string
+          purchase_order_id: string | null
           quantity_after: number
           quantity_change: number
           sale_id: string | null
@@ -749,6 +871,7 @@ export type Database = {
           note?: string | null
           organization_id: string
           product_id: string
+          purchase_order_id?: string | null
           quantity_after: number
           quantity_change: number
           sale_id?: string | null
@@ -761,6 +884,7 @@ export type Database = {
           note?: string | null
           organization_id?: string
           product_id?: string
+          purchase_order_id?: string | null
           quantity_after?: number
           quantity_change?: number
           sale_id?: string | null
@@ -779,6 +903,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "products"
             referencedColumns: ["id", "organization_id"]
+          },
+          {
+            foreignKeyName: "stock_movements_purchase_order_id_fkey"
+            columns: ["purchase_order_id"]
+            isOneToOne: false
+            referencedRelation: "purchase_orders"
+            referencedColumns: ["id"]
           },
           {
             foreignKeyName: "stock_movements_sale_id_fkey"
@@ -950,6 +1081,18 @@ export type Database = {
         Args: { _direction: number; _item_id?: string; _sale_id: string }
         Returns: undefined
       }
+      create_purchase_order: {
+        Args: {
+          _expected_on: string
+          _items: Json
+          _notes: string
+          _ordered_on: string
+          _organization_id: string
+          _status: Database["public"]["Enums"]["purchase_status"]
+          _supplier_id: string
+        }
+        Returns: string
+      }
       create_sale: {
         Args: {
           _customer_id: string
@@ -999,6 +1142,10 @@ export type Database = {
         Args: { _module: string; _organization_id: string; _user_id: string }
         Returns: string
       }
+      receive_purchase_order: {
+        Args: { _purchase_order_id: string }
+        Returns: undefined
+      }
       record_stock_movement: {
         Args: {
           _note?: string
@@ -1007,6 +1154,13 @@ export type Database = {
           _type: string
         }
         Returns: number
+      }
+      set_purchase_order_status: {
+        Args: {
+          _purchase_order_id: string
+          _status: Database["public"]["Enums"]["purchase_status"]
+        }
+        Returns: undefined
       }
     }
     Enums: {
@@ -1025,6 +1179,7 @@ export type Database = {
         | "on_hold"
         | "completed"
         | "cancelled"
+      purchase_status: "draft" | "ordered" | "received" | "cancelled"
       sale_status: "draft" | "pending" | "completed" | "cancelled" | "refunded"
       task_priority: "low" | "medium" | "high" | "urgent"
       task_status: "todo" | "in_progress" | "blocked" | "done" | "cancelled"
@@ -1172,6 +1327,7 @@ export const Constants = {
         "completed",
         "cancelled",
       ],
+      purchase_status: ["draft", "ordered", "received", "cancelled"],
       sale_status: ["draft", "pending", "completed", "cancelled", "refunded"],
       task_priority: ["low", "medium", "high", "urgent"],
       task_status: ["todo", "in_progress", "blocked", "done", "cancelled"],
