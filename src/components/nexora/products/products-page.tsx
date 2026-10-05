@@ -2,6 +2,7 @@ import { ProductFormDialog as ProductFormDialogLazy } from "./product-form-dialo
 import { ArrowDownToLine, ArrowUpFromLine, MoreHorizontal, Package, Pencil, Plus, SlidersHorizontal, Tags, Trash2 } from "lucide-react";
 import { CategoryManagerDialog } from "./category-manager-dialog";
 import { MovementHistory, ProductMovements } from "./movement-history";
+import { PurchaseOrdersPanel } from "./purchase-orders";
 import { StockMovementDialog, type MovementKind } from "./stock-movement-dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
@@ -119,8 +120,12 @@ function ProductsInner() {
       <Tabs defaultValue="products">
       <TabsList className="mb-3">
         <TabsTrigger value="products">Products</TabsTrigger>
+        <TabsTrigger value="purchases">Purchase orders</TabsTrigger>
         <TabsTrigger value="movements">Movement history</TabsTrigger>
       </TabsList>
+      <TabsContent value="purchases">
+        <PurchaseOrdersPanel organizationId={orgId} products={products.data ?? []} canManage={canManage} />
+      </TabsContent>
       <TabsContent value="products">
       <section className="rounded-lg border border-border bg-card/60 backdrop-blur-xl">
         <DataToolbar>

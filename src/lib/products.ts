@@ -156,9 +156,9 @@ export function useDeleteCategory(organizationId: string | undefined) {
   });
 }
 
-export type MovementType = "initial" | "stock_in" | "stock_out" | "adjustment" | "sale" | "sale_reversal";
+export type MovementType = "initial" | "stock_in" | "stock_out" | "adjustment" | "sale" | "sale_reversal" | "purchase";
 export const MOVEMENT_LABEL: Record<MovementType, string> = {
-  initial: "Opening stock", stock_in: "Stock in", stock_out: "Stock out", adjustment: "Adjustment", sale: "Sale", sale_reversal: "Sale reversed",
+  initial: "Opening stock", stock_in: "Stock in", stock_out: "Stock out", adjustment: "Adjustment", sale: "Sale", sale_reversal: "Sale reversed", purchase: "Purchase received",
 };
 export type StockMovement = {
   id: string; product_id: string; movement_type: MovementType; quantity_change: number; quantity_after: number; note: string | null; created_at: string;
