@@ -56,7 +56,7 @@ export function RankList({ rows, format, sub, loading, empty }: {
 }) {
   if (loading) return <div className="space-y-3">{[0, 1, 2].map((i) => <Skeleton key={i} className="h-9" />)}</div>;
   if (!rows.length) return <p className="py-8 text-center text-sm text-muted-foreground">{empty}</p>;
-  const max = rows[0].revenue || 1;
+  const max = rows[0]?.revenue || 1;
   return (
     <ol className="space-y-3">
       {rows.map((r, i) => (
