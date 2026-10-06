@@ -152,11 +152,11 @@ function CreatePurchaseOrderDialog({ open, onOpenChange, organizationId, product
     catch (e) { toast.error((e as Error).message); }
   };
 
-  const submit = async () => {
-    if (!supplierId) return toast.error("Select a supplier");
+  const submit = async (): Promise<void> => {
+    if (!supplierId) { toast.error("Select a supplier"); return; }
     const items = lines.filter((l) => l.product_id).map((l) => ({ product_id: l.product_id, quantity: Math.floor(Number(l.quantity)), unit_cost: Number(l.unit_cost) }));
-    if (items.length === 0) return toast.error("Add at least one product");
-    if (items.some((i) => !(i.quantity > 0) || !(i.unit_cost >= 0) || Number.isNaN(i.unit_cost))) return toast.error("Each line needs a whole quantity above zero and a valid cost");
+    if (items.length === 0) { toast.error("Add at least one product"); return; }
+    if (items.some((i) => !(i.quantity > 0) || !(i.unit_cost >= 0) || Number.isNaN(i.unit_cost))) { toast.error("Each line needs a whole quantity above zero and a valid cost"); return; }
     try {
       await create.mutateAsync({ supplierId, status, orderedOn, expectedOn: expectedOn || null, notes, items });
       toast.success("Purchase order created");
