@@ -87,7 +87,7 @@ function invalidate(qc: ReturnType<typeof useQueryClient>) {
 export function useSaveCustomer(orgId: string | undefined) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, values }: { id?: string; values: CustomerInput }) => {
+    mutationFn: async ({ id, values }: { id?: string | undefined; values: CustomerInput }) => {
       const q = id
         ? supabase.from("customers").update(clean(values)).eq("id", id).eq("organization_id", orgId!).select("id").single()
         : supabase.from("customers").insert({ ...clean(values), organization_id: orgId! }).select("id").single();
