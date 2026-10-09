@@ -10,8 +10,15 @@ export type Membership = {
 
 /** Returns the membership (organization + role) for the signed-in user, or null. */
 export async function fetchCurrentMembership(): Promise<Membership | null> {
-  const { data: auth } = await supabase.auth.getUser();
-  const userId = auth.user?.id;
+  // CHANGED: read the user ID from the local session instead of getUser().
+  // getUser() makes a network call to /auth/v1/user on every run, which is
+  // what was returning 403. getSession() reads the stored token locally.
+  // Access is still enforced server-side: the query below uses the same JWT,
+  // so RLS rejects it if the token is invalid.
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+  const userId = session?.user.id;
   if (!userId) return null;
 
   const { data, error } = await supabase

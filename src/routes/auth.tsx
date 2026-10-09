@@ -55,16 +55,34 @@ function AuthPage() {
 
   useEffect(() => {
     let active = true;
-    supabase.auth.getSession().then(({ data }) => {
-      if (active && data.session) {
-        window.location.assign(safePath(search.redirect));
+
+    (async () => {
+      const { data } = await supabase.auth.getSession();
+      if (!active || !data.session) return;
+
+      // getSession() only reads local storage. Verify with the server
+      // before redirecting, otherwise a dead token bounces us in a loop
+      // between /auth and the authenticated routes.
+      const { data: userData, error: userError } = await supabase.auth.getUser();
+      if (!active) return;
+
+      if (userError || !userData.user) {
+        try {
+          await supabase.auth.signOut({ scope: "local" });
+        } catch {
+          // ignore: stay on /auth and show the form
+        }
+        return;
       }
-    });
+      window.location.assign(safePath(search.redirect));
+    })();
+
     const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === "SIGNED_IN" && session) {
         navigate({ to: safePath(search.redirect), replace: true });
       }
     });
+
     return () => {
       active = false;
       sub.subscription.unsubscribe();
