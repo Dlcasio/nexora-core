@@ -18,7 +18,6 @@ import { Route as AuthenticatedAiAssistantRouteImport } from './routes/_authenti
 import { Route as AuthenticatedAnalyticsRouteImport } from './routes/_authenticated/analytics'
 import { Route as AuthenticatedAutomationRouteImport } from './routes/_authenticated/automation'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
-import { Route as AuthenticatedEmployeesRouteImport } from './routes/_authenticated/employees'
 import { Route as AuthenticatedFinanceRouteImport } from './routes/_authenticated/finance'
 import { Route as AuthenticatedInventoryRouteImport } from './routes/_authenticated/inventory'
 import { Route as AuthenticatedOrganizationRouteImport } from './routes/_authenticated/organization'
@@ -28,6 +27,8 @@ import { Route as AuthenticatedTeamRouteImport } from './routes/_authenticated/t
 import { Route as AuthenticatedCrmIndexRouteImport } from './routes/_authenticated/crm.index'
 import { Route as AuthenticatedCrmCustomerIdRouteImport } from './routes/_authenticated/crm.$customerId'
 import { Route as AuthenticatedCrmLeadsRouteImport } from './routes/_authenticated/crm.leads'
+import { Route as AuthenticatedEmployeesIndexRouteImport } from './routes/_authenticated/employees.index'
+import { Route as AuthenticatedEmployeesEmployeeIdRouteImport } from './routes/_authenticated/employees.$employeeId'
 import { Route as AuthenticatedSalesIndexRouteImport } from './routes/_authenticated/sales.index'
 import { Route as AuthenticatedSalesSaleIdRouteImport } from './routes/_authenticated/sales.$saleId'
 
@@ -74,11 +75,6 @@ const AuthenticatedAutomationRoute = AuthenticatedAutomationRouteImport.update({
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedEmployeesRoute = AuthenticatedEmployeesRouteImport.update({
-  id: '/employees',
-  path: '/employees',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedFinanceRoute = AuthenticatedFinanceRouteImport.update({
@@ -128,6 +124,18 @@ const AuthenticatedCrmLeadsRoute = AuthenticatedCrmLeadsRouteImport.update({
   path: '/crm/leads',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedEmployeesIndexRoute =
+  AuthenticatedEmployeesIndexRouteImport.update({
+    id: '/employees/',
+    path: '/employees/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedEmployeesEmployeeIdRoute =
+  AuthenticatedEmployeesEmployeeIdRouteImport.update({
+    id: '/employees/$employeeId',
+    path: '/employees/$employeeId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedSalesIndexRoute = AuthenticatedSalesIndexRouteImport.update({
   id: '/sales/',
   path: '/sales/',
@@ -149,7 +157,6 @@ export interface FileRoutesByFullPath {
   '/analytics': typeof AuthenticatedAnalyticsRoute
   '/automation': typeof AuthenticatedAutomationRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
-  '/employees': typeof AuthenticatedEmployeesRoute
   '/finance': typeof AuthenticatedFinanceRoute
   '/inventory': typeof AuthenticatedInventoryRoute
   '/organization': typeof AuthenticatedOrganizationRoute
@@ -158,8 +165,10 @@ export interface FileRoutesByFullPath {
   '/team': typeof AuthenticatedTeamRoute
   '/crm/$customerId': typeof AuthenticatedCrmCustomerIdRoute
   '/crm/leads': typeof AuthenticatedCrmLeadsRoute
+  '/employees/$employeeId': typeof AuthenticatedEmployeesEmployeeIdRoute
   '/sales/$saleId': typeof AuthenticatedSalesSaleIdRoute
   '/crm/': typeof AuthenticatedCrmIndexRoute
+  '/employees/': typeof AuthenticatedEmployeesIndexRoute
   '/sales/': typeof AuthenticatedSalesIndexRoute
 }
 export interface FileRoutesByTo {
@@ -171,7 +180,6 @@ export interface FileRoutesByTo {
   '/analytics': typeof AuthenticatedAnalyticsRoute
   '/automation': typeof AuthenticatedAutomationRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
-  '/employees': typeof AuthenticatedEmployeesRoute
   '/finance': typeof AuthenticatedFinanceRoute
   '/inventory': typeof AuthenticatedInventoryRoute
   '/organization': typeof AuthenticatedOrganizationRoute
@@ -180,8 +188,10 @@ export interface FileRoutesByTo {
   '/team': typeof AuthenticatedTeamRoute
   '/crm/$customerId': typeof AuthenticatedCrmCustomerIdRoute
   '/crm/leads': typeof AuthenticatedCrmLeadsRoute
+  '/employees/$employeeId': typeof AuthenticatedEmployeesEmployeeIdRoute
   '/sales/$saleId': typeof AuthenticatedSalesSaleIdRoute
   '/crm': typeof AuthenticatedCrmIndexRoute
+  '/employees': typeof AuthenticatedEmployeesIndexRoute
   '/sales': typeof AuthenticatedSalesIndexRoute
 }
 export interface FileRoutesById {
@@ -195,7 +205,6 @@ export interface FileRoutesById {
   '/_authenticated/analytics': typeof AuthenticatedAnalyticsRoute
   '/_authenticated/automation': typeof AuthenticatedAutomationRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
-  '/_authenticated/employees': typeof AuthenticatedEmployeesRoute
   '/_authenticated/finance': typeof AuthenticatedFinanceRoute
   '/_authenticated/inventory': typeof AuthenticatedInventoryRoute
   '/_authenticated/organization': typeof AuthenticatedOrganizationRoute
@@ -204,8 +213,10 @@ export interface FileRoutesById {
   '/_authenticated/team': typeof AuthenticatedTeamRoute
   '/_authenticated/crm/$customerId': typeof AuthenticatedCrmCustomerIdRoute
   '/_authenticated/crm/leads': typeof AuthenticatedCrmLeadsRoute
+  '/_authenticated/employees/$employeeId': typeof AuthenticatedEmployeesEmployeeIdRoute
   '/_authenticated/sales/$saleId': typeof AuthenticatedSalesSaleIdRoute
   '/_authenticated/crm/': typeof AuthenticatedCrmIndexRoute
+  '/_authenticated/employees/': typeof AuthenticatedEmployeesIndexRoute
   '/_authenticated/sales/': typeof AuthenticatedSalesIndexRoute
 }
 export interface FileRouteTypes {
@@ -219,7 +230,6 @@ export interface FileRouteTypes {
     | '/analytics'
     | '/automation'
     | '/dashboard'
-    | '/employees'
     | '/finance'
     | '/inventory'
     | '/organization'
@@ -228,8 +238,10 @@ export interface FileRouteTypes {
     | '/team'
     | '/crm/$customerId'
     | '/crm/leads'
+    | '/employees/$employeeId'
     | '/sales/$saleId'
     | '/crm/'
+    | '/employees/'
     | '/sales/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -241,7 +253,6 @@ export interface FileRouteTypes {
     | '/analytics'
     | '/automation'
     | '/dashboard'
-    | '/employees'
     | '/finance'
     | '/inventory'
     | '/organization'
@@ -250,8 +261,10 @@ export interface FileRouteTypes {
     | '/team'
     | '/crm/$customerId'
     | '/crm/leads'
+    | '/employees/$employeeId'
     | '/sales/$saleId'
     | '/crm'
+    | '/employees'
     | '/sales'
   id:
     | '__root__'
@@ -264,7 +277,6 @@ export interface FileRouteTypes {
     | '/_authenticated/analytics'
     | '/_authenticated/automation'
     | '/_authenticated/dashboard'
-    | '/_authenticated/employees'
     | '/_authenticated/finance'
     | '/_authenticated/inventory'
     | '/_authenticated/organization'
@@ -273,8 +285,10 @@ export interface FileRouteTypes {
     | '/_authenticated/team'
     | '/_authenticated/crm/$customerId'
     | '/_authenticated/crm/leads'
+    | '/_authenticated/employees/$employeeId'
     | '/_authenticated/sales/$saleId'
     | '/_authenticated/crm/'
+    | '/_authenticated/employees/'
     | '/_authenticated/sales/'
   fileRoutesById: FileRoutesById
 }
@@ -351,13 +365,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/employees': {
-      id: '/_authenticated/employees'
-      path: '/employees'
-      fullPath: '/employees'
-      preLoaderRoute: typeof AuthenticatedEmployeesRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
     '/_authenticated/finance': {
       id: '/_authenticated/finance'
       path: '/finance'
@@ -421,6 +428,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCrmLeadsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/employees/': {
+      id: '/_authenticated/employees/'
+      path: '/employees'
+      fullPath: '/employees/'
+      preLoaderRoute: typeof AuthenticatedEmployeesIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/employees/$employeeId': {
+      id: '/_authenticated/employees/$employeeId'
+      path: '/employees/$employeeId'
+      fullPath: '/employees/$employeeId'
+      preLoaderRoute: typeof AuthenticatedEmployeesEmployeeIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/sales/': {
       id: '/_authenticated/sales/'
       path: '/sales'
@@ -443,7 +464,6 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAnalyticsRoute: typeof AuthenticatedAnalyticsRoute
   AuthenticatedAutomationRoute: typeof AuthenticatedAutomationRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
-  AuthenticatedEmployeesRoute: typeof AuthenticatedEmployeesRoute
   AuthenticatedFinanceRoute: typeof AuthenticatedFinanceRoute
   AuthenticatedInventoryRoute: typeof AuthenticatedInventoryRoute
   AuthenticatedOrganizationRoute: typeof AuthenticatedOrganizationRoute
@@ -452,8 +472,10 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedTeamRoute: typeof AuthenticatedTeamRoute
   AuthenticatedCrmCustomerIdRoute: typeof AuthenticatedCrmCustomerIdRoute
   AuthenticatedCrmLeadsRoute: typeof AuthenticatedCrmLeadsRoute
+  AuthenticatedEmployeesEmployeeIdRoute: typeof AuthenticatedEmployeesEmployeeIdRoute
   AuthenticatedSalesSaleIdRoute: typeof AuthenticatedSalesSaleIdRoute
   AuthenticatedCrmIndexRoute: typeof AuthenticatedCrmIndexRoute
+  AuthenticatedEmployeesIndexRoute: typeof AuthenticatedEmployeesIndexRoute
   AuthenticatedSalesIndexRoute: typeof AuthenticatedSalesIndexRoute
 }
 
@@ -462,7 +484,6 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAnalyticsRoute: AuthenticatedAnalyticsRoute,
   AuthenticatedAutomationRoute: AuthenticatedAutomationRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
-  AuthenticatedEmployeesRoute: AuthenticatedEmployeesRoute,
   AuthenticatedFinanceRoute: AuthenticatedFinanceRoute,
   AuthenticatedInventoryRoute: AuthenticatedInventoryRoute,
   AuthenticatedOrganizationRoute: AuthenticatedOrganizationRoute,
@@ -471,8 +492,10 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedTeamRoute: AuthenticatedTeamRoute,
   AuthenticatedCrmCustomerIdRoute: AuthenticatedCrmCustomerIdRoute,
   AuthenticatedCrmLeadsRoute: AuthenticatedCrmLeadsRoute,
+  AuthenticatedEmployeesEmployeeIdRoute: AuthenticatedEmployeesEmployeeIdRoute,
   AuthenticatedSalesSaleIdRoute: AuthenticatedSalesSaleIdRoute,
   AuthenticatedCrmIndexRoute: AuthenticatedCrmIndexRoute,
+  AuthenticatedEmployeesIndexRoute: AuthenticatedEmployeesIndexRoute,
   AuthenticatedSalesIndexRoute: AuthenticatedSalesIndexRoute,
 }
 

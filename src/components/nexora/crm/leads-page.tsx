@@ -1,44 +1,39 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { Plus } from "lucide-react";
+import { useMemo, useState } from "react";
 
-/* ---------- Types & constants ---------- */
+import { RequirePermission } from "@/components/nexora/permission-gate";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { useCurrentOrganization } from "@/hooks/use-organization";
+import { usePermissions } from "@/hooks/use-permissions";
+import { useEmployeeList } from "@/lib/employees";
+import {
+  LEAD_SOURCES,
+  LEAD_STATUSES,
+  useDeleteLead,
+  useLeadList,
+  useMoveLead,
+  useSaveLead,
+  type LeadInput,
+  type LeadRecord,
+  type LeadSource,
+  type LeadStatus,
+} from "@/lib/leads";
+import { money } from "@/lib/products";
 
-export const STATUSES = ["New", "Contacted", "Qualified", "Proposal", "Won", "Lost"] as const;
-export type LeadStatus = (typeof STATUSES)[number];
-
-export const SOURCES = ["Website", "Referral", "Facebook", "LinkedIn", "Cold Call", "Email", "Event", "Other"] as const;
-export type LeadSource = (typeof SOURCES)[number];
-
-type Employee = { id: string; full_name: string };
-
-type Lead = {
-  id: string;
-  name: string;
-  company: string | null;
-  email: string | null;
-  phone: string | null;
-  status: LeadStatus;
-  source: LeadSource;
-  assigned_to: string | null;
-  expected_value: number;
-  notes: string | null;
-  created_at: string;
-  employee?: Employee | null;
+const DOT: Record<LeadStatus, string> = {
+  New: "bg-slate-400",
+  Contacted: "bg-blue-500",
+  Qualified: "bg-violet-500",
+  Proposal: "bg-amber-500",
+  Won: "bg-emerald-500",
+  Lost: "bg-rose-500",
 };
 
-type FormState = {
-  name: string;
-  company: string;
-  email: string;
-  phone: string;
-  status: LeadStatus;
-  source: LeadSource;
-  assigned_to: string;
-  expected_value: string;
-  notes: string;
-};
-
-const emptyForm: FormState = {
+const emptyForm: LeadInput = {
   name: "",
   company: "",
   email: "",
@@ -50,65 +45,52 @@ const emptyForm: FormState = {
   notes: "",
 };
 
-const STATUS_STYLES: Record<LeadStatus, { dot: string; badge: string }> = {
-  New: { dot: "bg-slate-400", badge: "bg-slate-100 text-slate-700" },
-  Contacted: { dot: "bg-blue-500", badge: "bg-blue-100 text-blue-700" },
-  Qualified: { dot: "bg-violet-500", badge: "bg-violet-100 text-violet-700" },
-  Proposal: { dot: "bg-amber-500", badge: "bg-amber-100 text-amber-700" },
-  Won: { dot: "bg-emerald-500", badge: "bg-emerald-100 text-emerald-700" },
-  Lost: { dot: "bg-rose-500", badge: "bg-rose-100 text-rose-700" },
-};
-
-const money = new Intl.NumberFormat("en-PH", {
-  style: "currency",
-  currency: "PHP",
-  maximumFractionDigits: 0,
-});
-
-/* ---------- Component ---------- */
+const selectCls =
+  "h-9 w-full rounded-md border border-input bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring";
 
 export function LeadsPage() {
-  const [leads, setLeads] = useState<Lead[]>([]);
-  const [employees, setEmployees] = useState<Employee[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  return (
+    <RequirePermission module="crm">
+      <Inner />
+    </RequirePermission>
+  );
+}
+
+function Inner() {
+  const { data: membership } = useCurrentOrganization();
+  const orgId = membership?.organization.id;
+  const canManage = usePermissions().can("crm", "manage");
+
+  const list = useLeadList(orgId);
+  const employees = useEmployeeList(orgId);
+  const save = useSaveLead(orgId);
+  const move = useMoveLead(orgId);
+  const del = useDeleteLead(orgId);
 
   const [view, setView] = useState<"pipeline" | "list">("pipeline");
   const [search, setSearch] = useState("");
   const [filterSource, setFilterSource] = useState("");
   const [filterAssignee, setFilterAssignee] = useState("");
 
-  const [modalOpen, setModalOpen] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [form, setForm] = useState<FormState>(emptyForm);
-  const [saving, setSaving] = useState(false);
+  const [open, setOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | undefined>();
+  const [form, setForm] = useState<LeadInput>(emptyForm);
+  const [formError, setFormError] = useState<string | null>(null);
 
   const [dragId, setDragId] = useState<string | null>(null);
   const [dragOver, setDragOver] = useState<LeadStatus | null>(null);
 
-  /* ----- Data ----- */
+  const people = useMemo(
+    () =>
+      (employees.data ?? []).map((e) => ({
+        id: e.id,
+        name: e.status === "terminated" ? `${e.full_name} (former)` : e.full_name,
+      })),
+    [employees.data],
+  );
+  const nameOf = (id: string | null) => (id ? (people.find((p) => p.id === id)?.name ?? "Unknown") : "Unassigned");
 
-  const load = useCallback(async () => {
-    setError(null);
-    const [leadsRes, empRes] = await Promise.all([
-      supabase
-        .from("leads")
-        .select("*, employee:employees(id, full_name)")
-        .order("created_at", { ascending: false }),
-      supabase.from("employees").select("id, full_name").order("full_name"),
-    ]);
-    if (leadsRes.error) setError(leadsRes.error.message);
-    else setLeads((leadsRes.data ?? []) as unknown as Lead[]);
-    if (empRes.error) setError(empRes.error.message);
-    else setEmployees(empRes.data ?? []);
-    setLoading(false);
-  }, []);
-
-  useEffect(() => {
-    load();
-  }, [load]);
-
-  /* ----- Derived ----- */
+  const leads = list.data ?? [];
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -117,191 +99,112 @@ export function LeadsPage() {
       if (filterAssignee === "unassigned" && l.assigned_to) return false;
       if (filterAssignee && filterAssignee !== "unassigned" && l.assigned_to !== filterAssignee) return false;
       if (!q) return true;
-      return [l.name, l.company, l.email, l.phone].some((v) => v?.toLowerCase().includes(q));
+      return [l.name, l.company, l.email, l.phone].some((v) => (v ?? "").toLowerCase().includes(q));
     });
   }, [leads, search, filterSource, filterAssignee]);
 
   const byStatus = useMemo(() => {
-    const map = Object.fromEntries(STATUSES.map((s) => [s, [] as Lead[]])) as Record<LeadStatus, Lead[]>;
+    const map = Object.fromEntries(LEAD_STATUSES.map((s) => [s, [] as LeadRecord[]])) as Record<LeadStatus, LeadRecord[]>;
     filtered.forEach((l) => map[l.status]?.push(l));
     return map;
   }, [filtered]);
 
   const openValue = filtered
     .filter((l) => l.status !== "Won" && l.status !== "Lost")
-    .reduce((sum, l) => sum + Number(l.expected_value), 0);
-  const wonValue = filtered.filter((l) => l.status === "Won").reduce((s, l) => s + Number(l.expected_value), 0);
-
-  /* ----- Actions ----- */
+    .reduce((t, l) => t + l.expected_value, 0);
+  const wonValue = filtered.filter((l) => l.status === "Won").reduce((t, l) => t + l.expected_value, 0);
 
   function openCreate(status: LeadStatus = "New") {
-    setEditingId(null);
+    setEditingId(undefined);
     setForm({ ...emptyForm, status });
-    setModalOpen(true);
+    setFormError(null);
+    setOpen(true);
   }
 
-  function openEdit(lead: Lead) {
-    setEditingId(lead.id);
+  function openEdit(l: LeadRecord) {
+    setEditingId(l.id);
     setForm({
-      name: lead.name,
-      company: lead.company ?? "",
-      email: lead.email ?? "",
-      phone: lead.phone ?? "",
-      status: lead.status,
-      source: lead.source,
-      assigned_to: lead.assigned_to ?? "",
-      expected_value: String(lead.expected_value ?? 0),
-      notes: lead.notes ?? "",
+      name: l.name,
+      company: l.company ?? "",
+      email: l.email ?? "",
+      phone: l.phone ?? "",
+      status: l.status,
+      source: l.source,
+      assigned_to: l.assigned_to ?? "",
+      expected_value: String(l.expected_value),
+      notes: l.notes ?? "",
     });
-    setModalOpen(true);
+    setFormError(null);
+    setOpen(true);
   }
 
-  async function handleSave(e: React.FormEvent) {
+  function submit(e: React.FormEvent) {
     e.preventDefault();
     if (!form.name.trim()) return;
-    setSaving(true);
-    setError(null);
-
-    const payload = {
-      name: form.name.trim(),
-      company: form.company.trim() || null,
-      email: form.email.trim() || null,
-      phone: form.phone.trim() || null,
-      status: form.status,
-      source: form.source,
-      assigned_to: form.assigned_to || null,
-      expected_value: Math.max(0, Number(form.expected_value) || 0),
-      notes: form.notes.trim() || null,
-    };
-
-    const { error } = editingId
-      ? await supabase.from("leads").update(payload).eq("id", editingId)
-      : await supabase.from("leads").insert(payload);
-
-    setSaving(false);
-    if (error) {
-      setError(error.message);
-      return;
-    }
-    setModalOpen(false);
-    await load();
+    setFormError(null);
+    save.mutate(
+      { id: editingId, values: form },
+      {
+        onSuccess: () => setOpen(false),
+        onError: (err) => setFormError((err as Error).message),
+      },
+    );
   }
 
-  async function handleDelete(lead: Lead) {
-    if (!window.confirm(`Delete lead "${lead.name}"? This cannot be undone.`)) return;
-    const prev = leads;
-    setLeads((ls) => ls.filter((l) => l.id !== lead.id));
-    const { error } = await supabase.from("leads").delete().eq("id", lead.id);
-    if (error) {
-      setLeads(prev);
-      setError(error.message);
-    }
+  function remove(l: LeadRecord) {
+    if (!window.confirm(`Delete lead "${l.name}"? This cannot be undone.`)) return;
+    del.mutate(l.id);
   }
 
-  async function changeStatus(id: string, status: LeadStatus) {
-    const lead = leads.find((l) => l.id === id);
-    if (!lead || lead.status === status) return;
-    const prev = leads;
-    setLeads((ls) => ls.map((l) => (l.id === id ? { ...l, status } : l)));
-    const { error } = await supabase.from("leads").update({ status }).eq("id", id);
-    if (error) {
-      setLeads(prev);
-      setError(error.message);
-    }
-  }
-
-  /* ----- Render helpers ----- */
-
-  const set = <K extends keyof FormState>(key: K, value: FormState[K]) =>
-    setForm((f) => ({ ...f, [key]: value }));
-
-  const LeadCard = ({ lead }: { lead: Lead }) => (
-    <div
-      draggable
-      onDragStart={() => setDragId(lead.id)}
-      onDragEnd={() => {
-        setDragId(null);
-        setDragOver(null);
-      }}
-      className={`group cursor-grab rounded-lg border border-slate-200 bg-white p-3 shadow-sm transition hover:shadow-md active:cursor-grabbing ${
-        dragId === lead.id ? "opacity-40" : ""
-      }`}
-    >
-      <div className="flex items-start justify-between gap-2">
-        <div className="min-w-0">
-          <p className="truncate text-sm font-semibold text-slate-900">{lead.name}</p>
-          {lead.company && <p className="truncate text-xs text-slate-500">{lead.company}</p>}
-        </div>
-        <div className="flex shrink-0 gap-1 opacity-0 transition group-hover:opacity-100">
-          <button onClick={() => openEdit(lead)} className="rounded p-1 text-xs text-slate-500 hover:bg-slate-100 hover:text-slate-900" aria-label="Edit lead">
-            Edit
-          </button>
-          <button onClick={() => handleDelete(lead)} className="rounded p-1 text-xs text-rose-500 hover:bg-rose-50" aria-label="Delete lead">
-            Delete
-          </button>
-        </div>
-      </div>
-      <p className="mt-2 text-sm font-medium text-slate-800">{money.format(Number(lead.expected_value))}</p>
-      <div className="mt-2 flex items-center justify-between text-xs text-slate-500">
-        <span className="rounded bg-slate-100 px-1.5 py-0.5">{lead.source}</span>
-        <span className="truncate pl-2">{lead.employee?.full_name ?? "Unassigned"}</span>
-      </div>
-      {lead.notes && <p className="mt-2 line-clamp-2 text-xs text-slate-500">{lead.notes}</p>}
-    </div>
-  );
-
-  const inputCls =
-    "w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100";
-
-  /* ----- UI ----- */
+  const set = <K extends keyof LeadInput>(k: K, v: LeadInput[K]) => setForm((f) => ({ ...f, [k]: v }));
+  const actionError = (move.error ?? del.error) as Error | null;
 
   return (
-    <div className="mx-auto max-w-[1600px] p-4 sm:p-6">
-      {/* Header */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
+    <div className="mx-auto max-w-[1600px] space-y-5 animate-nx-rise">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Leads</h1>
-          <p className="text-sm text-slate-500">
-            {filtered.length} leads · Open pipeline {money.format(openValue)} · Won {money.format(wonValue)}
+          <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground">03 · CRM</p>
+          <h1 className="mt-1 text-2xl font-semibold tracking-tight">Leads</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {filtered.length} leads · {money(openValue)} open pipeline · {money(wonValue)} won
           </p>
         </div>
-        <button
-          onClick={() => openCreate()}
-          className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700"
-        >
-          + New lead
-        </button>
+        {canManage && (
+          <Button onClick={() => openCreate()}>
+            <Plus className="size-4" /> Add lead
+          </Button>
+        )}
       </div>
 
       {/* Toolbar */}
-      <div className="mt-4 flex flex-wrap items-center gap-2">
-        <input
+      <div className="flex flex-wrap items-center gap-2">
+        <Input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search name, company, email, phone…"
-          className={`${inputCls} max-w-xs`}
+          className="max-w-xs"
         />
-        <select value={filterSource} onChange={(e) => setFilterSource(e.target.value)} className={`${inputCls} max-w-[160px]`}>
+        <select value={filterSource} onChange={(e) => setFilterSource(e.target.value)} className={`${selectCls} max-w-[160px]`}>
           <option value="">All sources</option>
-          {SOURCES.map((s) => (
+          {LEAD_SOURCES.map((s) => (
             <option key={s}>{s}</option>
           ))}
         </select>
-        <select value={filterAssignee} onChange={(e) => setFilterAssignee(e.target.value)} className={`${inputCls} max-w-[180px]`}>
+        <select value={filterAssignee} onChange={(e) => setFilterAssignee(e.target.value)} className={`${selectCls} max-w-[200px]`}>
           <option value="">All employees</option>
           <option value="unassigned">Unassigned</option>
-          {employees.map((emp) => (
-            <option key={emp.id} value={emp.id}>
-              {emp.full_name}
+          {people.map((p) => (
+            <option key={p.id} value={p.id}>
+              {p.name}
             </option>
           ))}
         </select>
-        <div className="ml-auto inline-flex overflow-hidden rounded-md border border-slate-300 text-sm">
+        <div className="ml-auto inline-flex overflow-hidden rounded-md border border-border text-sm">
           {(["pipeline", "list"] as const).map((v) => (
             <button
               key={v}
               onClick={() => setView(v)}
-              className={`px-3 py-1.5 capitalize ${view === v ? "bg-slate-900 text-white" : "bg-white text-slate-600 hover:bg-slate-50"}`}
+              className={`px-3 py-1.5 capitalize ${view === v ? "bg-primary text-primary-foreground" : "bg-card text-muted-foreground hover:bg-accent"}`}
             >
               {v}
             </button>
@@ -309,58 +212,74 @@ export function LeadsPage() {
         </div>
       </div>
 
-      {error && (
-        <div className="mt-4 flex items-center justify-between rounded-md border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">
-          <span>{error}</span>
-          <button onClick={() => setError(null)} className="font-medium">
-            Dismiss
-          </button>
+      {(list.error || actionError) && (
+        <div className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+          {((list.error ?? actionError) as Error).message}
         </div>
       )}
 
-      {loading ? (
-        <p className="mt-10 text-center text-sm text-slate-500">Loading leads…</p>
+      {list.isLoading ? (
+        <p className="py-10 text-center text-sm text-muted-foreground">Loading leads…</p>
       ) : view === "pipeline" ? (
-        /* ---------- Pipeline ---------- */
-        <div className="mt-4 flex gap-3 overflow-x-auto pb-4">
-          {STATUSES.map((status) => {
+        <div className="flex gap-3 overflow-x-auto pb-4">
+          {LEAD_STATUSES.map((status) => {
             const items = byStatus[status];
-            const total = items.reduce((s, l) => s + Number(l.expected_value), 0);
+            const total = items.reduce((t, l) => t + l.expected_value, 0);
             return (
               <div
                 key={status}
                 onDragOver={(e) => {
+                  if (!canManage) return;
                   e.preventDefault();
                   setDragOver(status);
                 }}
                 onDragLeave={() => setDragOver((s) => (s === status ? null : s))}
                 onDrop={() => {
-                  if (dragId) changeStatus(dragId, status);
+                  if (canManage && dragId) move.mutate({ id: dragId, status });
                   setDragId(null);
                   setDragOver(null);
                 }}
-                className={`flex w-72 shrink-0 flex-col rounded-xl border bg-slate-50 p-2 transition ${
-                  dragOver === status ? "border-blue-400 bg-blue-50/60" : "border-slate-200"
+                className={`flex w-72 shrink-0 flex-col rounded-lg border bg-card/60 p-2 transition ${
+                  dragOver === status ? "border-primary bg-primary/5" : "border-border"
                 }`}
               >
                 <div className="flex items-center justify-between px-2 py-1.5">
                   <div className="flex items-center gap-2">
-                    <span className={`h-2.5 w-2.5 rounded-full ${STATUS_STYLES[status].dot}`} />
-                    <span className="text-sm font-semibold text-slate-800">{status}</span>
-                    <span className="rounded-full bg-white px-2 text-xs text-slate-500 shadow-sm">{items.length}</span>
+                    <span className={`size-2.5 rounded-full ${DOT[status]}`} />
+                    <span className="text-sm font-semibold">{status}</span>
+                    <span className="rounded-full bg-muted px-2 text-xs text-muted-foreground">{items.length}</span>
                   </div>
-                  <button onClick={() => openCreate(status)} className="rounded px-1.5 text-lg leading-none text-slate-400 hover:bg-white hover:text-slate-700" aria-label={`Add lead to ${status}`}>
-                    +
-                  </button>
+                  {canManage && (
+                    <button
+                      onClick={() => openCreate(status)}
+                      className="rounded px-1.5 text-lg leading-none text-muted-foreground hover:bg-accent hover:text-foreground"
+                      aria-label={`Add lead to ${status}`}
+                    >
+                      +
+                    </button>
+                  )}
                 </div>
-                <p className="px-2 pb-2 text-xs text-slate-500">{money.format(total)}</p>
+                <p className="px-2 pb-2 font-mono text-xs text-muted-foreground">{money(total)}</p>
                 <div className="flex min-h-[80px] flex-1 flex-col gap-2">
-                  {items.map((lead) => (
-                    <LeadCard key={lead.id} lead={lead} />
+                  {items.map((l) => (
+                    <LeadCard
+                      key={l.id}
+                      lead={l}
+                      assignee={nameOf(l.assigned_to)}
+                      canManage={canManage}
+                      dragging={dragId === l.id}
+                      onDragStart={() => setDragId(l.id)}
+                      onDragEnd={() => {
+                        setDragId(null);
+                        setDragOver(null);
+                      }}
+                      onEdit={() => openEdit(l)}
+                      onDelete={() => remove(l)}
+                    />
                   ))}
                   {items.length === 0 && (
-                    <p className="rounded-lg border border-dashed border-slate-300 p-4 text-center text-xs text-slate-400">
-                      Drop leads here
+                    <p className="rounded-md border border-dashed border-border p-4 text-center text-xs text-muted-foreground">
+                      {canManage ? "Drop leads here" : "No leads"}
                     </p>
                   )}
                 </div>
@@ -369,56 +288,64 @@ export function LeadsPage() {
           })}
         </div>
       ) : (
-        /* ---------- List ---------- */
-        <div className="mt-4 overflow-x-auto rounded-xl border border-slate-200 bg-white">
+        <div className="overflow-x-auto rounded-lg border border-border bg-card/60">
           <table className="min-w-full text-left text-sm">
-            <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
+            <thead className="border-b border-border text-xs uppercase tracking-wide text-muted-foreground">
               <tr>
-                <th className="px-4 py-3">Lead</th>
-                <th className="px-4 py-3">Status</th>
-                <th className="px-4 py-3">Source</th>
-                <th className="px-4 py-3">Assigned</th>
-                <th className="px-4 py-3 text-right">Expected value</th>
-                <th className="px-4 py-3">Notes</th>
-                <th className="px-4 py-3" />
+                <th className="px-4 py-3 font-medium">Lead</th>
+                <th className="px-4 py-3 font-medium">Status</th>
+                <th className="px-4 py-3 font-medium">Source</th>
+                <th className="px-4 py-3 font-medium">Assigned</th>
+                <th className="px-4 py-3 text-right font-medium">Expected value</th>
+                <th className="px-4 py-3 font-medium">Notes</th>
+                {canManage && <th className="px-4 py-3" />}
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
-              {filtered.map((lead) => (
-                <tr key={lead.id} className="hover:bg-slate-50">
+            <tbody className="divide-y divide-border">
+              {filtered.map((l) => (
+                <tr key={l.id} className="hover:bg-accent/40">
                   <td className="px-4 py-3">
-                    <p className="font-medium text-slate-900">{lead.name}</p>
-                    <p className="text-xs text-slate-500">{lead.company ?? lead.email ?? "—"}</p>
+                    <p className="font-medium">{l.name}</p>
+                    <p className="text-xs text-muted-foreground">{l.company ?? l.email ?? "—"}</p>
                   </td>
                   <td className="px-4 py-3">
-                    <select
-                      value={lead.status}
-                      onChange={(e) => changeStatus(lead.id, e.target.value as LeadStatus)}
-                      className={`rounded-full border-0 px-2.5 py-1 text-xs font-medium ${STATUS_STYLES[lead.status].badge}`}
-                    >
-                      {STATUSES.map((s) => (
-                        <option key={s}>{s}</option>
-                      ))}
-                    </select>
+                    {canManage ? (
+                      <select
+                        value={l.status}
+                        onChange={(e) => move.mutate({ id: l.id, status: e.target.value as LeadStatus })}
+                        className="h-8 rounded-md border border-input bg-background px-2 text-xs"
+                      >
+                        {LEAD_STATUSES.map((s) => (
+                          <option key={s}>{s}</option>
+                        ))}
+                      </select>
+                    ) : (
+                      <span className="inline-flex items-center gap-2 text-xs">
+                        <span className={`size-2 rounded-full ${DOT[l.status]}`} />
+                        {l.status}
+                      </span>
+                    )}
                   </td>
-                  <td className="px-4 py-3 text-slate-600">{lead.source}</td>
-                  <td className="px-4 py-3 text-slate-600">{lead.employee?.full_name ?? "Unassigned"}</td>
-                  <td className="px-4 py-3 text-right font-medium text-slate-800">{money.format(Number(lead.expected_value))}</td>
-                  <td className="max-w-[240px] truncate px-4 py-3 text-slate-500">{lead.notes ?? "—"}</td>
-                  <td className="whitespace-nowrap px-4 py-3 text-right">
-                    <button onClick={() => openEdit(lead)} className="mr-3 text-slate-600 hover:text-slate-900">
-                      Edit
-                    </button>
-                    <button onClick={() => handleDelete(lead)} className="text-rose-500 hover:text-rose-700">
-                      Delete
-                    </button>
-                  </td>
+                  <td className="px-4 py-3 text-muted-foreground">{l.source}</td>
+                  <td className="px-4 py-3 text-muted-foreground">{nameOf(l.assigned_to)}</td>
+                  <td className="px-4 py-3 text-right font-medium">{money(l.expected_value)}</td>
+                  <td className="max-w-[240px] truncate px-4 py-3 text-muted-foreground">{l.notes ?? "—"}</td>
+                  {canManage && (
+                    <td className="whitespace-nowrap px-4 py-3 text-right">
+                      <button onClick={() => openEdit(l)} className="mr-3 text-muted-foreground hover:text-foreground">
+                        Edit
+                      </button>
+                      <button onClick={() => remove(l)} className="text-destructive hover:underline">
+                        Delete
+                      </button>
+                    </td>
+                  )}
                 </tr>
               ))}
               {filtered.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="px-4 py-10 text-center text-slate-400">
-                    No leads found.
+                  <td colSpan={7} className="px-4 py-10 text-center text-muted-foreground">
+                    {leads.length ? "No leads match your filters." : "No leads yet."}
                   </td>
                 </tr>
               )}
@@ -427,81 +354,131 @@ export function LeadsPage() {
         </div>
       )}
 
-      {/* ---------- Create / Edit modal ---------- */}
-      {modalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4" onClick={() => !saving && setModalOpen(false)}>
-          <form
-            onSubmit={handleSave}
-            onClick={(e) => e.stopPropagation()}
-            className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-xl bg-white p-6 shadow-xl"
-          >
-            <h2 className="text-lg font-semibold text-slate-900">{editingId ? "Edit lead" : "New lead"}</h2>
-
-            <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <label className="sm:col-span-2">
-                <span className="mb-1 block text-xs font-medium text-slate-600">Name *</span>
-                <input required value={form.name} onChange={(e) => set("name", e.target.value)} className={inputCls} />
-              </label>
-              <label>
-                <span className="mb-1 block text-xs font-medium text-slate-600">Company</span>
-                <input value={form.company} onChange={(e) => set("company", e.target.value)} className={inputCls} />
-              </label>
-              <label>
-                <span className="mb-1 block text-xs font-medium text-slate-600">Phone</span>
-                <input value={form.phone} onChange={(e) => set("phone", e.target.value)} className={inputCls} />
-              </label>
-              <label className="sm:col-span-2">
-                <span className="mb-1 block text-xs font-medium text-slate-600">Email</span>
-                <input type="email" value={form.email} onChange={(e) => set("email", e.target.value)} className={inputCls} />
-              </label>
-              <label>
-                <span className="mb-1 block text-xs font-medium text-slate-600">Status</span>
-                <select value={form.status} onChange={(e) => set("status", e.target.value as LeadStatus)} className={inputCls}>
-                  {STATUSES.map((s) => (
-                    <option key={s}>{s}</option>
-                  ))}
-                </select>
-              </label>
-              <label>
-                <span className="mb-1 block text-xs font-medium text-slate-600">Source</span>
-                <select value={form.source} onChange={(e) => set("source", e.target.value as LeadSource)} className={inputCls}>
-                  {SOURCES.map((s) => (
-                    <option key={s}>{s}</option>
-                  ))}
-                </select>
-              </label>
-              <label>
-                <span className="mb-1 block text-xs font-medium text-slate-600">Assigned employee</span>
-                <select value={form.assigned_to} onChange={(e) => set("assigned_to", e.target.value)} className={inputCls}>
-                  <option value="">Unassigned</option>
-                  {employees.map((emp) => (
-                    <option key={emp.id} value={emp.id}>
-                      {emp.full_name}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label>
-                <span className="mb-1 block text-xs font-medium text-slate-600">Expected value (PHP)</span>
-                <input type="number" min={0} step="0.01" value={form.expected_value} onChange={(e) => set("expected_value", e.target.value)} className={inputCls} />
-              </label>
-              <label className="sm:col-span-2">
-                <span className="mb-1 block text-xs font-medium text-slate-600">Notes</span>
-                <textarea rows={4} value={form.notes} onChange={(e) => set("notes", e.target.value)} className={inputCls} />
-              </label>
+      {/* Create / Edit dialog */}
+      <Dialog open={open} onOpenChange={(o) => !save.isPending && setOpen(o)}>
+        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>{editingId ? "Edit lead" : "New lead"}</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={submit} className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div className="space-y-1.5 sm:col-span-2">
+              <Label htmlFor="lead-name">Name *</Label>
+              <Input id="lead-name" required value={form.name} onChange={(e) => set("name", e.target.value)} />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="lead-company">Company</Label>
+              <Input id="lead-company" value={form.company} onChange={(e) => set("company", e.target.value)} />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="lead-phone">Phone</Label>
+              <Input id="lead-phone" value={form.phone} onChange={(e) => set("phone", e.target.value)} />
+            </div>
+            <div className="space-y-1.5 sm:col-span-2">
+              <Label htmlFor="lead-email">Email</Label>
+              <Input id="lead-email" type="email" value={form.email} onChange={(e) => set("email", e.target.value)} />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="lead-status">Status</Label>
+              <select id="lead-status" value={form.status} onChange={(e) => set("status", e.target.value as LeadStatus)} className={selectCls}>
+                {LEAD_STATUSES.map((s) => (
+                  <option key={s}>{s}</option>
+                ))}
+              </select>
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="lead-source">Source</Label>
+              <select id="lead-source" value={form.source} onChange={(e) => set("source", e.target.value as LeadSource)} className={selectCls}>
+                {LEAD_SOURCES.map((s) => (
+                  <option key={s}>{s}</option>
+                ))}
+              </select>
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="lead-assignee">Assigned employee</Label>
+              <select id="lead-assignee" value={form.assigned_to} onChange={(e) => set("assigned_to", e.target.value)} className={selectCls}>
+                <option value="">Unassigned</option>
+                {people.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="lead-value">Expected value</Label>
+              <Input
+                id="lead-value"
+                type="number"
+                min={0}
+                step="0.01"
+                value={form.expected_value}
+                onChange={(e) => set("expected_value", e.target.value)}
+              />
+            </div>
+            <div className="space-y-1.5 sm:col-span-2">
+              <Label htmlFor="lead-notes">Notes</Label>
+              <Textarea id="lead-notes" rows={4} value={form.notes} onChange={(e) => set("notes", e.target.value)} />
             </div>
 
-            <div className="mt-5 flex justify-end gap-2">
-              <button type="button" disabled={saving} onClick={() => setModalOpen(false)} className="rounded-md border border-slate-300 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">
+            {formError && <p className="text-sm text-destructive sm:col-span-2">{formError}</p>}
+
+            <div className="flex justify-end gap-2 sm:col-span-2">
+              <Button type="button" variant="outline" disabled={save.isPending} onClick={() => setOpen(false)}>
                 Cancel
-              </button>
-              <button type="submit" disabled={saving} className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-60">
-                {saving ? "Saving…" : editingId ? "Save changes" : "Create lead"}
-              </button>
+              </Button>
+              <Button type="submit" disabled={save.isPending}>
+                {save.isPending ? "Saving…" : editingId ? "Save changes" : "Create lead"}
+              </Button>
             </div>
           </form>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
+
+function LeadCard(props: {
+  lead: LeadRecord;
+  assignee: string;
+  canManage: boolean;
+  dragging: boolean;
+  onDragStart: () => void;
+  onDragEnd: () => void;
+  onEdit: () => void;
+  onDelete: () => void;
+}) {
+  const { lead, assignee, canManage, dragging } = props;
+  return (
+    <div
+      draggable={canManage}
+      onDragStart={props.onDragStart}
+      onDragEnd={props.onDragEnd}
+      className={`group rounded-md border border-border bg-card p-3 shadow-sm transition hover:shadow-md ${
+        canManage ? "cursor-grab active:cursor-grabbing" : ""
+      } ${dragging ? "opacity-40" : ""}`}
+    >
+      <div className="flex items-start justify-between gap-2">
+        <div className="min-w-0">
+          <p className="truncate text-sm font-medium">{lead.name}</p>
+          {lead.company && <p className="truncate text-xs text-muted-foreground">{lead.company}</p>}
         </div>
-      )}
+        {canManage && (
+          <div className="flex shrink-0 gap-2 text-xs opacity-0 transition group-hover:opacity-100">
+            <button onClick={props.onEdit} className="text-muted-foreground hover:text-foreground">
+              Edit
+            </button>
+            <button onClick={props.onDelete} className="text-destructive hover:underline">
+              Delete
+            </button>
+          </div>
+        )}
+      </div>
+      <p className="mt-2 text-sm font-semibold">{money(lead.expected_value)}</p>
+      <div className="mt-2 flex items-center justify-between text-xs text-muted-foreground">
+        <span className="rounded bg-muted px-1.5 py-0.5">{lead.source}</span>
+        <span className="truncate pl-2">{assignee}</span>
+      </div>
+      {lead.notes && <p className="mt-2 line-clamp-2 text-xs text-muted-foreground">{lead.notes}</p>}
     </div>
   );
 }

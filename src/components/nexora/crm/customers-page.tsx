@@ -1,4 +1,4 @@
-import { useNavigate } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { Plus, Users } from "lucide-react";
 import { useMemo, useState } from "react";
 
@@ -57,7 +57,10 @@ function Inner() {
           <h1 className="mt-1 text-2xl font-semibold tracking-tight">Customers</h1>
           <p className="mt-1 text-sm text-muted-foreground">{list.data?.length ?? 0} customers · {money(total)} lifetime purchases</p>
         </div>
-        {canManage && <Button onClick={() => setOpen(true)}><Plus className="size-4" /> Add customer</Button>}
+       <div className="flex items-center gap-2">
+  <Button asChild variant="outline"><Link to="/crm/leads">Leads</Link></Button>
+  {canManage && <Button onClick={() => setOpen(true)}><Plus className="size-4" /> Add customer</Button>}
+</div>
       </div>
       <div className="rounded-lg border border-border bg-card/60 backdrop-blur-xl">
         <DataToolbar>
