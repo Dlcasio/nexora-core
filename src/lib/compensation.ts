@@ -9,7 +9,35 @@ export const PAY_FREQUENCY_LABEL: Record<PayFrequency, string> = {
   weekly: "Weekly",
 };
 
-export type CompensationRecord = { id: string; base_salary: number; pay_frequency: PayFrequency };
+export type CompensationRecord = {
+  id: string;
+  base_salary: number; // pay per pay period
+  pay_frequency: PayFrequency;
+  apply_sss: boolean;
+  apply_philhealth: boolean;
+  apply_pagibig: boolean;
+  apply_tax: boolean;
+  cash_advance_deduction: number; // repayment taken each pay period
+};
+
+export type CompensationInput = Omit<CompensationRecord, "id">;
+
+export type PayItemKind = "benefit" | "deduction";
+export type PayItem = {
+  id: string;
+  kind: PayItemKind;
+  name: string;
+  amount: number; // per pay period
+  taxable: boolean;
+  active: boolean;
+};
+export type PayItemInput = {
+  kind: PayItemKind;
+  name: string;
+  amount: string;
+  taxable: boolean;
+  active: boolean;
+};
 
 export type CashEntryType = "advance" | "repayment";
 export type CashEntry = {
@@ -43,18 +71,29 @@ export function summarizeCash(entries: CashEntry[]) {
   return { advanced, repaid, balance: advanced - repaid };
 }
 
+/* ───────────── Salary and payroll settings ───────────── */
+
+const COMP_COLS =
+  "id, base_salary, pay_frequency, apply_sss, apply_philhealth, apply_pagibig, apply_tax, cash_advance_deduction";
+
 export function useCompensation(orgId: string | undefined, employeeId: string) {
   return useQuery({
     queryKey: ["compensation", orgId, employeeId],
     enabled: !!orgId,
     queryFn: async (): Promise<CompensationRecord | null> => {
       const { data, error } = await from("employee_compensation")
-        .select("id, base_salary, pay_frequency")
+        .select(COMP_COLS)
         .eq("organization_id", orgId!)
         .eq("employee_id", employeeId)
         .maybeSingle();
       if (error) throw error;
-      return data ? { ...data, base_salary: Number(data.base_salary) } : null;
+      return data
+        ? {
+            ...data,
+            base_salary: Number(data.base_salary),
+            cash_advance_deduction: Number(data.cash_advance_deduction),
+          }
+        : null;
     },
   });
 }
@@ -62,7 +101,7 @@ export function useCompensation(orgId: string | undefined, employeeId: string) {
 export function useSaveCompensation(orgId: string | undefined, employeeId: string) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (v: { base_salary: number; pay_frequency: PayFrequency }) => {
+    mutationFn: async (v: CompensationInput) => {
       const { error } = await from("employee_compensation").upsert(
         { organization_id: orgId!, employee_id: employeeId, ...v },
         { onConflict: "employee_id" },
@@ -72,6 +111,68 @@ export function useSaveCompensation(orgId: string | undefined, employeeId: strin
     onSuccess: () => void qc.invalidateQueries({ queryKey: ["compensation"] }),
   });
 }
+
+/* ───────────── Benefits and other deductions ───────────── */
+
+export function usePayItems(orgId: string | undefined, employeeId: string) {
+  return useQuery({
+    queryKey: ["pay-items", orgId, employeeId],
+    enabled: !!orgId,
+    queryFn: async (): Promise<PayItem[]> => {
+      const { data, error } = await from("employee_pay_items")
+        .select("id, kind, name, amount, taxable, active")
+        .eq("organization_id", orgId!)
+        .eq("employee_id", employeeId)
+        .order("kind")
+        .order("name");
+      if (error) throw error;
+      return ((data ?? []) as PayItem[]).map((i) => ({ ...i, amount: Number(i.amount) }));
+    },
+  });
+}
+
+const cleanItem = (v: PayItemInput) => ({
+  kind: v.kind,
+  name: v.name.trim(),
+  amount: Math.max(0, Number(v.amount) || 0),
+  taxable: v.kind === "benefit" ? v.taxable : false,
+  active: v.active,
+});
+
+export function useSavePayItem(orgId: string | undefined, employeeId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, values }: { id?: string | undefined; values: PayItemInput }) => {
+      const q = id
+        ? from("employee_pay_items").update(cleanItem(values)).eq("id", id).eq("organization_id", orgId!)
+        : from("employee_pay_items").insert({
+            ...cleanItem(values),
+            organization_id: orgId!,
+            employee_id: employeeId,
+          });
+      const { error } = await q;
+      if (error) throw friendly(error);
+    },
+    onSuccess: () => void qc.invalidateQueries({ queryKey: ["pay-items"] }),
+  });
+}
+
+export function useDeletePayItem(orgId: string | undefined, employeeId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await from("employee_pay_items")
+        .delete()
+        .eq("id", id)
+        .eq("organization_id", orgId!)
+        .eq("employee_id", employeeId);
+      if (error) throw friendly(error);
+    },
+    onSuccess: () => void qc.invalidateQueries({ queryKey: ["pay-items"] }),
+  });
+}
+
+/* ───────────── Cash advance ledger ───────────── */
 
 export function useCashEntries(orgId: string | undefined, employeeId: string) {
   return useQuery({

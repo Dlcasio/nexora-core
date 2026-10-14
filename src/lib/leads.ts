@@ -18,6 +18,7 @@ export type LeadRecord = {
   assigned_to: string | null;
   expected_value: number;
   notes: string | null;
+  converted_customer_id: string | null;
   created_at: string;
 };
 
@@ -33,13 +34,14 @@ export type LeadInput = {
   notes: string;
 };
 
-const COLS = "id, name, company, email, phone, status, source, assigned_to, expected_value, notes, created_at";
+const COLS =
+  "id, name, company, email, phone, status, source, assigned_to, expected_value, notes, converted_customer_id, created_at";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const table = () => (supabase as any).from("leads");
 
 function friendly(e: { code?: string; message: string }) {
-  if (e.code === "42501") return new Error("Your role can't change leads.");
+  if (e.code === "42501") return new Error("Your role can't make this change.");
   return new Error(e.message);
 }
 
@@ -115,5 +117,50 @@ export function useDeleteLead(orgId: string | undefined) {
       if (error) throw friendly(error);
     },
     onSuccess: () => void qc.invalidateQueries({ queryKey: ["leads-crm"] }),
+  });
+}
+
+/**
+ * Turns a Won lead into a customer and links the two.
+ * Creates the customer first, then links the lead only if it is still unconverted.
+ * If linking fails, the new customer is removed again so no duplicate is left behind.
+ */
+export function useConvertLead(orgId: string | undefined) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (lead: LeadRecord) => {
+      if (lead.converted_customer_id) throw new Error("This lead was already converted.");
+      if (lead.status !== "Won") throw new Error("Only Won leads can be converted.");
+
+      const { data: customer, error } = await supabase
+        .from("customers")
+        .insert({
+          organization_id: orgId!,
+          name: lead.name,
+          company: lead.company,
+          email: lead.email,
+          phone: lead.phone,
+          notes: lead.notes,
+        })
+        .select("id")
+        .single();
+      if (error) throw friendly(error);
+
+      const { data: linked, error: linkError } = await table()
+        .update({ converted_customer_id: customer.id })
+        .eq("id", lead.id)
+        .eq("organization_id", orgId!)
+        .is("converted_customer_id", null)
+        .select("id");
+
+      if (linkError || !linked || linked.length === 0) {
+        await supabase.from("customers").delete().eq("id", customer.id).eq("organization_id", orgId!);
+        throw linkError ? friendly(linkError) : new Error("This lead was already converted.");
+      }
+      return customer.id as string;
+    },
+    onSuccess: () => {
+      for (const k of ["leads-crm", "customers-crm", "customers"]) void qc.invalidateQueries({ queryKey: [k] });
+    },
   });
 }

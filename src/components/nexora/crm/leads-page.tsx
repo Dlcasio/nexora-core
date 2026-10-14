@@ -1,3 +1,4 @@
+import { Link } from "@tanstack/react-router";
 import { Plus } from "lucide-react";
 import { useMemo, useState } from "react";
 
@@ -13,6 +14,7 @@ import { useEmployeeList } from "@/lib/employees";
 import {
   LEAD_SOURCES,
   LEAD_STATUSES,
+  useConvertLead,
   useDeleteLead,
   useLeadList,
   useMoveLead,
@@ -66,6 +68,7 @@ function Inner() {
   const save = useSaveLead(orgId);
   const move = useMoveLead(orgId);
   const del = useDeleteLead(orgId);
+  const convert = useConvertLead(orgId);
 
   const [view, setView] = useState<"pipeline" | "list">("pipeline");
   const [search, setSearch] = useState("");
@@ -156,8 +159,15 @@ function Inner() {
     del.mutate(l.id);
   }
 
+  function convertLead(l: LeadRecord) {
+    if (!window.confirm(`Create a customer from "${l.name}"?`)) return;
+    convert.mutate(l);
+  }
+
+  const convertingId = convert.isPending ? convert.variables?.id : undefined;
+
   const set = <K extends keyof LeadInput>(k: K, v: LeadInput[K]) => setForm((f) => ({ ...f, [k]: v }));
-  const actionError = (move.error ?? del.error) as Error | null;
+  const actionError = (move.error ?? del.error ?? convert.error) as Error | null;
 
   return (
     <div className="mx-auto max-w-[1600px] space-y-5 animate-nx-rise">
@@ -166,14 +176,20 @@ function Inner() {
           <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground">03 · CRM</p>
           <h1 className="mt-1 text-2xl font-semibold tracking-tight">Leads</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            {filtered.length} leads · {money(openValue)} open pipeline · {money(wonValue)} won
+            {filtered.length} {filtered.length === 1 ? "lead" : "leads"} · {money(openValue)} open pipeline ·{" "}
+            {money(wonValue)} won
           </p>
         </div>
-        {canManage && (
-          <Button onClick={() => openCreate()}>
-            <Plus className="size-4" /> Add lead
+        <div className="flex items-center gap-2">
+          <Button asChild variant="outline">
+            <Link to="/crm">Customers</Link>
           </Button>
-        )}
+          {canManage && (
+            <Button onClick={() => openCreate()}>
+              <Plus className="size-4" /> Add lead
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* Toolbar */}
@@ -268,6 +284,7 @@ function Inner() {
                       assignee={nameOf(l.assigned_to)}
                       canManage={canManage}
                       dragging={dragId === l.id}
+                      converting={convertingId === l.id}
                       onDragStart={() => setDragId(l.id)}
                       onDragEnd={() => {
                         setDragId(null);
@@ -275,6 +292,7 @@ function Inner() {
                       }}
                       onEdit={() => openEdit(l)}
                       onDelete={() => remove(l)}
+                      onConvert={() => convertLead(l)}
                     />
                   ))}
                   {items.length === 0 && (
@@ -307,6 +325,15 @@ function Inner() {
                   <td className="px-4 py-3">
                     <p className="font-medium">{l.name}</p>
                     <p className="text-xs text-muted-foreground">{l.company ?? l.email ?? "—"}</p>
+                    {l.converted_customer_id && (
+                      <Link
+                        to="/crm/$customerId"
+                        params={{ customerId: l.converted_customer_id }}
+                        className="text-xs text-primary hover:underline"
+                      >
+                        View customer →
+                      </Link>
+                    )}
                   </td>
                   <td className="px-4 py-3">
                     {canManage ? (
@@ -332,6 +359,15 @@ function Inner() {
                   <td className="max-w-[240px] truncate px-4 py-3 text-muted-foreground">{l.notes ?? "—"}</td>
                   {canManage && (
                     <td className="whitespace-nowrap px-4 py-3 text-right">
+                      {l.status === "Won" && !l.converted_customer_id && (
+                        <button
+                          onClick={() => convertLead(l)}
+                          disabled={convertingId === l.id}
+                          className="mr-3 text-primary hover:underline disabled:opacity-50"
+                        >
+                          {convertingId === l.id ? "Converting…" : "Convert"}
+                        </button>
+                      )}
                       <button onClick={() => openEdit(l)} className="mr-3 text-muted-foreground hover:text-foreground">
                         Edit
                       </button>
@@ -442,12 +478,14 @@ function LeadCard(props: {
   assignee: string;
   canManage: boolean;
   dragging: boolean;
+  converting: boolean;
   onDragStart: () => void;
   onDragEnd: () => void;
   onEdit: () => void;
   onDelete: () => void;
+  onConvert: () => void;
 }) {
-  const { lead, assignee, canManage, dragging } = props;
+  const { lead, assignee, canManage, dragging, converting } = props;
   return (
     <div
       draggable={canManage}
@@ -479,6 +517,27 @@ function LeadCard(props: {
         <span className="truncate pl-2">{assignee}</span>
       </div>
       {lead.notes && <p className="mt-2 line-clamp-2 text-xs text-muted-foreground">{lead.notes}</p>}
+
+      {lead.status === "Won" &&
+        (lead.converted_customer_id ? (
+          <Link
+            to="/crm/$customerId"
+            params={{ customerId: lead.converted_customer_id }}
+            className="mt-2 inline-block text-xs text-primary hover:underline"
+          >
+            View customer →
+          </Link>
+        ) : canManage ? (
+          <Button
+            size="sm"
+            variant="outline"
+            className="mt-2 h-7 w-full text-xs"
+            disabled={converting}
+            onClick={props.onConvert}
+          >
+            {converting ? "Converting…" : "Convert to customer"}
+          </Button>
+        ) : null)}
     </div>
   );
 }
