@@ -10,7 +10,7 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.5"
+    PostgrestVersion: "14.17"
   }
   public: {
     Tables: {
@@ -103,6 +103,57 @@ export type Database = {
           },
         ]
       }
+      customer_communications: {
+        Row: {
+          body: string | null
+          created_at: string
+          created_by: string | null
+          customer_id: string
+          id: string
+          kind: string
+          occurred_at: string
+          organization_id: string
+          subject: string | null
+        }
+        Insert: {
+          body?: string | null
+          created_at?: string
+          created_by?: string | null
+          customer_id: string
+          id?: string
+          kind?: string
+          occurred_at?: string
+          organization_id: string
+          subject?: string | null
+        }
+        Update: {
+          body?: string | null
+          created_at?: string
+          created_by?: string | null
+          customer_id?: string
+          id?: string
+          kind?: string
+          occurred_at?: string
+          organization_id?: string
+          subject?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customer_comms_customer_fk"
+            columns: ["customer_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id", "organization_id"]
+          },
+          {
+            foreignKeyName: "customer_communications_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       customers: {
         Row: {
           address: string | null
@@ -146,6 +197,289 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "customers_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      deals: {
+        Row: {
+          assigned_to: string | null
+          closed_at: string | null
+          created_at: string
+          created_by: string | null
+          customer_id: string | null
+          expected_close_date: string | null
+          id: string
+          notes: string | null
+          organization_id: string
+          stage: string
+          title: string
+          updated_at: string
+          value: number
+        }
+        Insert: {
+          assigned_to?: string | null
+          closed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          customer_id?: string | null
+          expected_close_date?: string | null
+          id?: string
+          notes?: string | null
+          organization_id: string
+          stage?: string
+          title: string
+          updated_at?: string
+          value?: number
+        }
+        Update: {
+          assigned_to?: string | null
+          closed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          customer_id?: string | null
+          expected_close_date?: string | null
+          id?: string
+          notes?: string | null
+          organization_id?: string
+          stage?: string
+          title?: string
+          updated_at?: string
+          value?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deals_customer_fk"
+            columns: ["customer_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id", "organization_id"]
+          },
+          {
+            foreignKeyName: "deals_employee_fk"
+            columns: ["assigned_to", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id", "organization_id"]
+          },
+          {
+            foreignKeyName: "deals_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      employee_cash_advances: {
+        Row: {
+          amount: number
+          created_at: string
+          created_by: string | null
+          employee_id: string
+          entry_date: string
+          entry_type: string
+          id: string
+          organization_id: string
+          reason: string | null
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          created_by?: string | null
+          employee_id: string
+          entry_date?: string
+          entry_type: string
+          id?: string
+          organization_id: string
+          reason?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          created_by?: string | null
+          employee_id?: string
+          entry_date?: string
+          entry_type?: string
+          id?: string
+          organization_id?: string
+          reason?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_cash_advances_employee_fk"
+            columns: ["employee_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id", "organization_id"]
+          },
+          {
+            foreignKeyName: "employee_cash_advances_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      employee_compensation: {
+        Row: {
+          apply_pagibig: boolean
+          apply_philhealth: boolean
+          apply_sss: boolean
+          apply_tax: boolean
+          base_salary: number
+          cash_advance_deduction: number
+          created_at: string
+          employee_id: string
+          id: string
+          organization_id: string
+          pay_frequency: string
+          updated_at: string
+        }
+        Insert: {
+          apply_pagibig?: boolean
+          apply_philhealth?: boolean
+          apply_sss?: boolean
+          apply_tax?: boolean
+          base_salary?: number
+          cash_advance_deduction?: number
+          created_at?: string
+          employee_id: string
+          id?: string
+          organization_id: string
+          pay_frequency?: string
+          updated_at?: string
+        }
+        Update: {
+          apply_pagibig?: boolean
+          apply_philhealth?: boolean
+          apply_sss?: boolean
+          apply_tax?: boolean
+          base_salary?: number
+          cash_advance_deduction?: number
+          created_at?: string
+          employee_id?: string
+          id?: string
+          organization_id?: string
+          pay_frequency?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_compensation_employee_fk"
+            columns: ["employee_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id", "organization_id"]
+          },
+          {
+            foreignKeyName: "employee_compensation_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      employee_pay_items: {
+        Row: {
+          active: boolean
+          amount: number
+          created_at: string
+          employee_id: string
+          id: string
+          kind: string
+          name: string
+          organization_id: string
+          taxable: boolean
+        }
+        Insert: {
+          active?: boolean
+          amount: number
+          created_at?: string
+          employee_id: string
+          id?: string
+          kind: string
+          name: string
+          organization_id: string
+          taxable?: boolean
+        }
+        Update: {
+          active?: boolean
+          amount?: number
+          created_at?: string
+          employee_id?: string
+          id?: string
+          kind?: string
+          name?: string
+          organization_id?: string
+          taxable?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_pay_items_employee_fk"
+            columns: ["employee_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id", "organization_id"]
+          },
+          {
+            foreignKeyName: "employee_pay_items_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      employee_records: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          details: string | null
+          employee_id: string
+          id: string
+          organization_id: string
+          record_date: string
+          record_type: string
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          details?: string | null
+          employee_id: string
+          id?: string
+          organization_id: string
+          record_date?: string
+          record_type: string
+          title: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          details?: string | null
+          employee_id?: string
+          id?: string
+          organization_id?: string
+          record_date?: string
+          record_type?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_records_employee_fk"
+            columns: ["employee_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id", "organization_id"]
+          },
+          {
+            foreignKeyName: "employee_records_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
@@ -263,6 +597,82 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "suppliers"
             referencedColumns: ["id", "organization_id"]
+          },
+        ]
+      }
+      leads: {
+        Row: {
+          assigned_to: string | null
+          company: string | null
+          converted_customer_id: string | null
+          created_at: string
+          created_by: string | null
+          email: string | null
+          expected_value: number
+          id: string
+          name: string
+          notes: string | null
+          organization_id: string
+          phone: string | null
+          source: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_to?: string | null
+          company?: string | null
+          converted_customer_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          email?: string | null
+          expected_value?: number
+          id?: string
+          name: string
+          notes?: string | null
+          organization_id: string
+          phone?: string | null
+          source?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_to?: string | null
+          company?: string | null
+          converted_customer_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          email?: string | null
+          expected_value?: number
+          id?: string
+          name?: string
+          notes?: string | null
+          organization_id?: string
+          phone?: string | null
+          source?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leads_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leads_converted_customer_id_fkey"
+            columns: ["converted_customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leads_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
           },
         ]
       }
