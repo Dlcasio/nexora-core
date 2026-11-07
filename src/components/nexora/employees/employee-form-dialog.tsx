@@ -73,7 +73,7 @@ export function EmployeeFormDialog({
     if (!form.full_name.trim()) return;
     setError(null);
     save.mutate(
-      { id: employee?.id, values: form },
+      { ...(employee ? { id: employee.id } : {}), values: form },
       {
         onSuccess: () => onOpenChange(false),
         onError: (err) => setError((err as Error).message),

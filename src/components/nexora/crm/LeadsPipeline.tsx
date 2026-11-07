@@ -1,7 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { supabase } from "@/lib/supabaseClient";
+import { supabase } from "@/integrations/supabase/client";
+import { useCurrentOrganization } from "@/hooks/use-organization";
 
 /* ---------- Types & constants ---------- */
 
@@ -70,6 +71,8 @@ const money = new Intl.NumberFormat("en-PH", {
 /* ---------- Component ---------- */
 
 export default function LeadsPipeline() {
+  const { data: membership } = useCurrentOrganization();
+  const organizationId = membership?.organization.id;
   const [leads, setLeads] = useState<Lead[]>([]);
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [loading, setLoading] = useState(true);
@@ -91,20 +94,25 @@ export default function LeadsPipeline() {
   /* ----- Data ----- */
 
   const load = useCallback(async () => {
+    if (!organizationId) {
+      setLoading(false);
+      return;
+    }
     setError(null);
     const [leadsRes, empRes] = await Promise.all([
       supabase
         .from("leads")
         .select("*, employee:employees(id, full_name)")
+        .eq("organization_id", organizationId)
         .order("created_at", { ascending: false }),
-      supabase.from("employees").select("id, full_name").order("full_name"),
+      supabase.from("employees").select("id, full_name").eq("organization_id", organizationId).order("full_name"),
     ]);
     if (leadsRes.error) setError(leadsRes.error.message);
     else setLeads((leadsRes.data ?? []) as unknown as Lead[]);
     if (empRes.error) setError(empRes.error.message);
     else setEmployees(empRes.data ?? []);
     setLoading(false);
-  }, []);
+  }, [organizationId]);
 
   useEffect(() => {
     load();
@@ -161,6 +169,10 @@ export default function LeadsPipeline() {
   async function handleSave(e: React.FormEvent) {
     e.preventDefault();
     if (!form.name.trim()) return;
+    if (!organizationId) {
+      setError("Choose an organization before saving a lead.");
+      return;
+    }
     setSaving(true);
     setError(null);
 
@@ -177,8 +189,8 @@ export default function LeadsPipeline() {
     };
 
     const { error } = editingId
-      ? await supabase.from("leads").update(payload).eq("id", editingId)
-      : await supabase.from("leads").insert(payload);
+      ? await supabase.from("leads").update(payload).eq("organization_id", organizationId).eq("id", editingId)
+      : await supabase.from("leads").insert({ ...payload, organization_id: organizationId });
 
     setSaving(false);
     if (error) {
@@ -190,10 +202,14 @@ export default function LeadsPipeline() {
   }
 
   async function handleDelete(lead: Lead) {
+    if (!organizationId) {
+      setError("Choose an organization before deleting a lead.");
+      return;
+    }
     if (!window.confirm(`Delete lead "${lead.name}"? This cannot be undone.`)) return;
     const prev = leads;
     setLeads((ls) => ls.filter((l) => l.id !== lead.id));
-    const { error } = await supabase.from("leads").delete().eq("id", lead.id);
+    const { error } = await supabase.from("leads").delete().eq("organization_id", organizationId).eq("id", lead.id);
     if (error) {
       setLeads(prev);
       setError(error.message);
@@ -205,7 +221,8 @@ export default function LeadsPipeline() {
     if (!lead || lead.status === status) return;
     const prev = leads;
     setLeads((ls) => ls.map((l) => (l.id === id ? { ...l, status } : l)));
-    const { error } = await supabase.from("leads").update({ status }).eq("id", id);
+    if (!organizationId) return;
+    const { error } = await supabase.from("leads").update({ status }).eq("organization_id", organizationId).eq("id", id);
     if (error) {
       setLeads(prev);
       setError(error.message);

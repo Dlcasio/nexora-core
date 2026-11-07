@@ -177,14 +177,14 @@ function Inner() {
           rows={rows}
           loading={list.isLoading}
           error={list.error ? (list.error as Error).message : null}
-          onRowClick={
-            canManage
-              ? (p) => {
+          {...(canManage
+            ? {
+                onRowClick: (p: ProjectRecord) => {
                   setEditing(p);
                   setOpen(true);
-                }
-              : undefined
-          }
+                },
+              }
+            : {})}
           empty={
             <div className="flex flex-col items-center gap-2 text-muted-foreground">
               <FolderKanban className="size-5" />

@@ -212,7 +212,7 @@ function Inner() {
             rows={rows}
             loading={expenses.isLoading}
             error={expenses.error ? (expenses.error as Error).message : null}
-            onRowClick={canManage ? openEdit : undefined}
+            {...(canManage ? { onRowClick: openEdit } : {})}
             empty={
               <div className="flex flex-col items-center gap-2 text-muted-foreground">
                 <Receipt className="size-5" />
