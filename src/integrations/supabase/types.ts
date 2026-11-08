@@ -284,6 +284,7 @@ export type Database = {
           entry_type: string
           id: string
           organization_id: string
+          payroll_run_id: string | null
           reason: string | null
         }
         Insert: {
@@ -295,6 +296,7 @@ export type Database = {
           entry_type: string
           id?: string
           organization_id: string
+          payroll_run_id?: string | null
           reason?: string | null
         }
         Update: {
@@ -306,6 +308,7 @@ export type Database = {
           entry_type?: string
           id?: string
           organization_id?: string
+          payroll_run_id?: string | null
           reason?: string | null
         }
         Relationships: [
@@ -322,6 +325,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "organizations"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_cash_advances_payroll_run_fk"
+            columns: ["payroll_run_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "employee_payroll_runs"
+            referencedColumns: ["id", "organization_id"]
           },
         ]
       }
@@ -429,6 +439,93 @@ export type Database = {
           },
           {
             foreignKeyName: "employee_pay_items_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      employee_payroll_runs: {
+        Row: {
+          basic_pay: number
+          benefits: number
+          calculation_snapshot: Json
+          cash_advance_repaid: number
+          created_at: string
+          created_by: string | null
+          employee_id: string
+          gross_pay: number
+          id: string
+          net_pay: number
+          organization_id: string
+          other_deductions: number
+          pagibig_deduction: number
+          pay_date: string
+          pay_period_end: string
+          pay_period_start: string
+          philhealth_deduction: number
+          sss_deduction: number
+          sss_monthly_salary_credit: number
+          tax_deduction: number
+          total_deductions: number
+        }
+        Insert: {
+          basic_pay: number
+          benefits: number
+          calculation_snapshot?: Json
+          cash_advance_repaid?: number
+          created_at?: string
+          created_by?: string | null
+          employee_id: string
+          gross_pay: number
+          id?: string
+          net_pay: number
+          organization_id: string
+          other_deductions: number
+          pagibig_deduction: number
+          pay_date: string
+          pay_period_end: string
+          pay_period_start: string
+          philhealth_deduction: number
+          sss_deduction: number
+          sss_monthly_salary_credit?: number
+          tax_deduction: number
+          total_deductions: number
+        }
+        Update: {
+          basic_pay?: number
+          benefits?: number
+          calculation_snapshot?: Json
+          cash_advance_repaid?: number
+          created_at?: string
+          created_by?: string | null
+          employee_id?: string
+          gross_pay?: number
+          id?: string
+          net_pay?: number
+          organization_id?: string
+          other_deductions?: number
+          pagibig_deduction?: number
+          pay_date?: string
+          pay_period_end?: string
+          pay_period_start?: string
+          philhealth_deduction?: number
+          sss_deduction?: number
+          sss_monthly_salary_credit?: number
+          tax_deduction?: number
+          total_deductions?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_payroll_runs_employee_id_organization_id_fkey"
+            columns: ["employee_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id", "organization_id"]
+          },
+          {
+            foreignKeyName: "employee_payroll_runs_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
@@ -1555,6 +1652,17 @@ export type Database = {
       receive_purchase_order: {
         Args: { _purchase_order_id: string }
         Returns: undefined
+      }
+      record_employee_payroll_run: {
+        Args: {
+          _employee_id: string
+          _organization_id: string
+          _pay_date: string
+          _pay_period_end: string
+          _pay_period_start: string
+          _snapshot: Json
+        }
+        Returns: string
       }
       record_stock_movement: {
         Args: {
